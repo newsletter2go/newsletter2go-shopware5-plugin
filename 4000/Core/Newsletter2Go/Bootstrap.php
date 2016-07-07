@@ -54,7 +54,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             'author'      => 'Newsletter2Go',
             'copyright'   => 'Copyright © ' . date('Y') . ', Newsletter2Go GmbH',
             'supplier'    => 'Newsletter2Go GmbH',
-            'description' => 'Plugin for extending Shopware REST API.',
+            'description' => 'Adds email marketing functionality to your E-commerce platform. Easily synchronize your contacts and send product newsletters',
             'support'     => 'https://www.newsletter2go.de/hilfe/',
             'link'        => 'http://www.newsletter2go.de',
         );
