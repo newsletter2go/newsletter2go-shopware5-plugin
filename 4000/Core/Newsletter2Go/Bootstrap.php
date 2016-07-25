@@ -94,7 +94,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         }
 
         /* @var $rootNode  \Shopware\Models\Menu\Menu */
-        $menuItem = $this->Menu()->findOneBy('label', 'Newsletter2Go');
+        $menuItem = $this->Menu()->findOneBy(array('label' => 'Newsletter2Go'));
         Shopware()->Models()->remove($menuItem);
         Shopware()->Models()->flush();
 
@@ -276,7 +276,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     private function createMenu()
     {
-        $rootNode = $this->Menu()->findOneBy('label', 'Marketing');
+        $rootNode = $this->Menu()->findOneBy(array('label' => 'Marketing'));
         $this->createMenuItem(array(
             'label'      => 'Newsletter2Go',
             'class'      => 'newsletter2go_image',
