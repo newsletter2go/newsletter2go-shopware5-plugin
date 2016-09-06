@@ -166,10 +166,10 @@ class NewsletterCustomer extends Resource
                 }
             }
 
-            if ($hasBirthday && $customer['billing']['birthday'] !== null) {
+            if ($hasBirthday && $customer['birthday'] !== null) {
                 /** @var \DateTime $birthday */
-                $birthday = $customer['billing']['birthday'];
-                $customer['billing']['birthday'] = $birthday->format('Y-m-d');
+                $birthday = $customer['birthday'];
+                $customer['birthday'] = $birthday->format('Y-m-d');
             }
 
             if ($orderQuery) {
@@ -314,7 +314,7 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.company', 'Company');
         $fields[] = $this->createField('billing.department', 'Department');
         $fields[] = $this->createField('billing.salutation', 'Salutation');
-        $fields[] = $this->createField('billing.number', 'Customernumber');
+        $fields[] = $this->createField('number', 'Customernumber');
         $fields[] = $this->createField('billing.firstName', 'Firstname');
         $fields[] = $this->createField('billing.lastName', 'Lastname');
         $fields[] = $this->createField('billing.street', 'Street');
@@ -322,8 +322,8 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.zipCode', 'Zipcode');
         $fields[] = $this->createField('billing.city', 'City');
         $fields[] = $this->createField('billing.phone', 'Phone');
-        $fields[] = $this->createField('billing.fax', 'Fax');
-        $fields[] = $this->createField('billing.birthday', 'Birthday', '', 'Date');
+//      $fields[] = $this->createField('billing.fax', 'Fax');
+        $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
         return $fields;
     }
