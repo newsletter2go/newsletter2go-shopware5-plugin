@@ -221,14 +221,14 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
 
     /**
      * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Api_CustomerGroups
-     * event. This event is fired when shopware trying to access the plugin CustomerGroups controller.
+     * event. This event is fired when shopware trying to access the plugin NewsletterGroups controller.
      *
      * @param Enlight_Event_EventArgs $arguments
      * @return string
      */
-    public function getCustomerGroupsApiController(Enlight_Event_EventArgs $arguments)
+    public function getNewsletterGroupsApiController(Enlight_Event_EventArgs $arguments)
     {
-        return $this->Path() . 'Controllers/Api/CustomerGroups.php';
+        return $this->Path() . 'Controllers/Api/NewsletterGroups.php';
     }
 
     /**
@@ -327,14 +327,14 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->registerController('Backend', 'Newsletter2go');
             $this->registerController('Api', 'NewsletterCustomers');
             $this->registerController('Api', 'NewsletterScriptUrls');
-            $this->registerController('Api', 'CustomerGroups');
+            $this->registerController('Api', 'NewsletterGroups');
             $this->registerController('Api', 'CustomerFields');
         } else {
             $path = 'Enlight_Controller_Dispatcher_ControllerPath_';
             $this->subscribeEvent($path . 'Backend_Newsletter2go', 'getNewsletter2goBackendController');
             $this->subscribeEvent($path . 'Api_NewsletterCustomers', 'getNewsletterCustomersApiController');
             $this->subscribeEvent($path . 'Api_NewsletterScriptUrls', 'getNewsletterScriptUrlsApiController');
-            $this->subscribeEvent($path . 'Api_CustomerGroups', 'getCustomerGroupsApiController');
+            $this->subscribeEvent($path . 'Api_NewsletterGroups', 'getNewsletterGroupsApiController');
             $this->subscribeEvent($path . 'Api_CustomerFields', 'getCustomerFieldsApiController');
         }
     }
