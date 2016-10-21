@@ -220,6 +220,18 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     }
 
     /**
+     * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Api_ArticleMedia
+     * event. This event is fired when shopware trying to access the plugin ArticleMedia controller.
+     *
+     * @param Enlight_Event_EventArgs $arguments
+     * @return string
+     */
+    public function getArticleMediaFilesApiController(Enlight_Event_EventArgs $arguments)
+    {
+        return $this->Path() . 'Controllers/Api/ArticleMediaFiles.php';
+    }
+
+    /**
      * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Api_CustomerGroups
      * event. This event is fired when shopware trying to access the plugin NewsletterGroups controller.
      *
@@ -329,6 +341,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->registerController('Api', 'NewsletterScriptUrls');
             $this->registerController('Api', 'NewsletterGroups');
             $this->registerController('Api', 'CustomerFields');
+            $this->registerController('Api', 'ArticleMediaFiles');
         } else {
             $path = 'Enlight_Controller_Dispatcher_ControllerPath_';
             $this->subscribeEvent($path . 'Backend_Newsletter2go', 'getNewsletter2goBackendController');
@@ -336,6 +349,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->subscribeEvent($path . 'Api_NewsletterScriptUrls', 'getNewsletterScriptUrlsApiController');
             $this->subscribeEvent($path . 'Api_NewsletterGroups', 'getNewsletterGroupsApiController');
             $this->subscribeEvent($path . 'Api_CustomerFields', 'getCustomerFieldsApiController');
+            $this->subscribeEvent($path . 'Api_ArticleMediaFiles', 'getArticleMediaFilesApiController');
         }
     }
 
