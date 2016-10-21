@@ -1,6 +1,6 @@
 <?php
 
-class Shopware_Controllers_Api_CustomerGroups extends Shopware_Controllers_Api_Rest
+class Shopware_Controllers_Api_NewsletterGroups extends Shopware_Controllers_Api_Rest
 {
     /**
      * @var Shopware\Components\Api\Resource\NewsletterCustomer
@@ -19,7 +19,7 @@ class Shopware_Controllers_Api_CustomerGroups extends Shopware_Controllers_Api_R
      */
     public function indexAction()
     {
-        $groups = $this->resource->getCustomerGroups();
+        $groups = $this->resource->getNewsletterGroups();
         $this->View()->assign(array(
             'success' => true,
             'message' => 'OK',

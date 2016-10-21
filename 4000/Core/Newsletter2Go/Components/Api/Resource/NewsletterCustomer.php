@@ -244,7 +244,7 @@ class NewsletterCustomer extends Resource
         }
     }
 
-    public function getCustomerGroups()
+    public function getNewsletterGroups()
     {
         try {
             $this->checkPrivilege('read');
