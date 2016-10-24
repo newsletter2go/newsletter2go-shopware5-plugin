@@ -5,7 +5,6 @@ namespace Shopware\Components\Api\Resource;
 use Shopware\Components\Api\Exception as ApiException;
 use Shopware\Models\Newsletter\Address;
 
-
 class Nl2go_ResponseHelper
 {
 
@@ -85,7 +84,6 @@ class NewsletterCustomer extends Resource
 
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
-        $orderQuery = false; //(!empty($arrangedFields['order']) ? $this->createOrdersQuery($arrangedFields['order']) : false);
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
             ->where('customer.active = true');
@@ -122,9 +120,9 @@ class NewsletterCustomer extends Resource
 
         $query = $builder->getQuery();
         $query->setHydrationMode($this->getResultMode());
-        $paginator = $this->getManager()->createPaginator($query);
+        $pagination = $this->getManager()->createPaginator($query);
 
-        $customers = $paginator->getIterator()->getArrayCopy();
+        $customers = $pagination->getIterator()->getArrayCopy();
 
         $country = array();
         if (isset($customer['billing']['countryId'])) {
@@ -137,7 +135,7 @@ class NewsletterCustomer extends Resource
         $hasId = in_array('id', $fields);
         $hasSubs = in_array('subscribed', $fields);
         $hasSalutation = in_array('billing.salutation', $fields);
-        $hasBirthday = in_array('billing.salutation', $fields);
+        $hasBirthday = in_array('billing.birthday', $fields) || in_array('birthday', $fields);
         if ($hasSubs) {
             $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
             $subscribers = array();
@@ -166,15 +164,17 @@ class NewsletterCustomer extends Resource
                 }
             }
 
-            if ($hasBirthday && $customer['birthday'] !== null) {
-                /** @var \DateTime $birthday */
-                $birthday = $customer['birthday'];
-                $customer['birthday'] = $birthday->format('Y-m-d');
-            }
+            if ($hasBirthday) {
+                /** @var $birthday \DateTime */
+                $birthday = null;
+                if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
+                    $birthday = $customer['birthday'];
+                } else if ($customer['billing']['birthday'] !== null) {
+                    $birthday = $customer['billing']['birthday'];
+                }
 
-            if ($orderQuery) {
-                $orderInfo = Shopware()->Db()->fetchRow($orderQuery . $customer['id']);
-                $customer = array_merge($customer, $orderInfo);
+                $customer['birthday'] = $birthday ? $birthday->format('Y-m-d') : null;
+                unset($customer['billing']['birthday']);
             }
 
             if (!empty($arrangedFields['billing'])) {
@@ -192,7 +192,7 @@ class NewsletterCustomer extends Resource
     /**
      * @param string $email
      * @param array $params
-     * @return \Shopware\Models\Customer\Customer
+     * @return mixed
      * @throws \Shopware\Components\Api\Exception\ValidationException
      * @throws \Shopware\Components\Api\Exception\NotFoundException
      * @throws \Shopware\Components\Api\Exception\ParameterMissingException
@@ -290,10 +290,6 @@ class NewsletterCustomer extends Resource
     public function getCustomerFields()
     {
         $fields = array();
-//        $fields[] = $this->createField('totalorders', 'Count of total orders by customer', 'Count of total orders by customer', 'Integer');
-//        $fields[] = $this->createField('totalrevenue', 'Total revenue of customer', 'Total revenue of customer', 'Float');
-//        $fields[] = $this->createField('averagecartsize', 'Average cart size', 'Average cart size', 'Float');
-//        $fields[] = $this->createField('lastorder', 'Last order', 'Last order', 'Date');
         $fields[] = $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer');
         $fields[] = $this->createField('email', 'E-mail address');
         $fields[] = $this->createField('active', 'Active', 'Is customer active', 'Boolean');
@@ -314,42 +310,22 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.company', 'Company');
         $fields[] = $this->createField('billing.department', 'Department');
         $fields[] = $this->createField('billing.salutation', 'Salutation');
-        $fields[] = $this->createField('number', 'Customernumber');
         $fields[] = $this->createField('billing.firstName', 'Firstname');
         $fields[] = $this->createField('billing.lastName', 'Lastname');
         $fields[] = $this->createField('billing.street', 'Street');
-        //$fields[] = $this->createField('billing.streetNumber', 'Streetnumber');
         $fields[] = $this->createField('billing.zipCode', 'Zipcode');
         $fields[] = $this->createField('billing.city', 'City');
         $fields[] = $this->createField('billing.phone', 'Phone');
-//      $fields[] = $this->createField('billing.fax', 'Fax');
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
+
+        if (\Shopware::VERSION >= '5.2') {
+            $fields[] = $this->createField('number', 'Customernumber');
+        } else {
+            $fields[] = $this->createField('billing.number', 'Customernumber');
+        }
 
         return $fields;
     }
-
-//    private function createOrdersQuery($fields)
-//    {
-//        $select = array();
-//        foreach ($fields as $field) {
-//            switch ($field) {
-//                case 'totalorders':
-//                    $select[] = 'COUNT(*) as ' . $field;
-//                    break;
-//                case 'totalrevenue':
-//                    $select[] = 'SUM(invoice_amount) as ' . $field;
-//                    break;
-//                case 'averagecartsize':
-//                    $select[] = 'AVG(invoice_amount) as ' . $field;
-//                    break;
-//                case 'lastorder':
-//                    $select[] = 'MAX(ordertime) as ' . $field;
-//                    break;
-//            }
-//        }
-//
-//        return 'SELECT ' . implode(', ', $select) . ' FROM s_order WHERE userID = ';
-//    }
 
     private function createField($id, $name = '', $description = '', $type = 'String')
     {
@@ -379,17 +355,18 @@ class NewsletterCustomer extends Resource
                 case 'billing':
                     $result['billing'][] = $parts[1];
                     break;
-//                case 'totalorders':
-//                case 'totalrevenue':
-//                case 'averagecartsize':
-//                case 'lastorder':
-//                    $result['order'][] = $field;
-//                    break;
                 case 'country':
                     $result['billing'][] = 'countryId';
                     break;
                 case 'id':
                 case 'subscribed':
+                    break;
+                case 'birthday':
+                    if (\Shopware::VERSION >= '5.2') {
+                        $result['customer'][] = $field;
+                    } else {
+                        $result['billing'][] = $field;
+                    }
                     break;
                 default:
                     $result['customer'][] = $field;
