@@ -91,7 +91,7 @@ class NewsletterCustomer extends Resource
         $selectFields[] = 'partial customer.{' . implode(',', $arrangedFields['customer']) . '}';
         if (!empty($arrangedFields['billing'])) {
             $arrangedFields['billing'][] = 'id';
-            $builder->leftJoin('customer.billing', 'billing');
+            $builder->leftJoin('customer.defaultBillingAddress', 'billing');
             $selectFields[] = 'partial billing.{' . implode(',', $arrangedFields['billing']) . '}';
         }
 
@@ -125,12 +125,11 @@ class NewsletterCustomer extends Resource
         $customers = $pagination->getIterator()->getArrayCopy();
 
         $country = array();
-        if (isset($customer['billing']['countryId'])) {
-            $countries = Shopware()->Db()->fetchAll('SELECT * FROM s_core_countries');
-            foreach ($countries as $c) {
-                $country[$c['id']] = $c['countryname'];
-            }
+        $countries = Shopware()->Db()->fetchAll('SELECT * FROM s_core_countries');
+        foreach ($countries as $c) {
+            $country[$c['id']] = $c['countryname'];
         }
+
 
         $hasId = in_array('id', $fields);
         $hasSubs = in_array('subscribed', $fields);
@@ -145,9 +144,26 @@ class NewsletterCustomer extends Resource
         }
 
         foreach ($customers as &$customer) {
-            if (isset($customer['billing']['countryId'])) {
-                $customer['country'] = $country[$customer['billing']['countryId']];
-                unset($customer['billing']['countryId']);
+            if (isset($customer['defaultBillingAddress']['countryId'])) {
+                $customer['country'] = $country[$customer['defaultBillingAddress']['countryId']];
+                unset($customer['defaultBillingAddress']['countryId']);
+            }
+
+            if (!empty($customer['defaultBillingAddress']['stateId'])) {
+                $state = array();
+                $states = Shopware()->Db()->fetchAll('SELECT * FROM s_core_countries_states');
+                foreach ($states as $s) {
+                    $state[$s['id']] = $s['name'];
+                }
+                $customer['state'] = $state[$customer['defaultBillingAddress']['stateId']];
+                unset($customer['defaultBillingAddress']['stateId']);
+            } else {
+                $customer['state'] = '';
+                unset($customer['defaultBillingAddress']['stateId']);
+            }
+
+            foreach ($customer['defaultBillingAddress'] as &$defaultBillingAddres) {
+                is_null($defaultBillingAddres) ? $defaultBillingAddres = '' : '';
             }
 
             if ($hasSubs) {
@@ -155,12 +171,12 @@ class NewsletterCustomer extends Resource
             }
 
             if ($hasSalutation) {
-                $salutation = strtolower($customer['billing']['salutation']);
+                $salutation = strtolower($customer['defaultBillingAddress']['salutation']);
 
                 if ($salutation === 'mr') {
-                    $customer['billing']['salutation'] = 'm';
+                    $customer['defaultBillingAddress']['salutation'] = 'm';
                 } else if ($salutation === 'ms') {
-                    $customer['billing']['salutation'] = 'f';
+                    $customer['defaultBillingAddress']['salutation'] = 'f';
                 }
             }
 
@@ -178,7 +194,7 @@ class NewsletterCustomer extends Resource
             }
 
             if (!empty($arrangedFields['billing'])) {
-                unset($customer['billing']['id']);
+                unset($customer['defaultBillingAddress']['id']);
             }
 
             if (!$hasId) {
@@ -304,18 +320,20 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('paymentId', 'Price group Id.', '', 'Integer');
         $fields[] = $this->createField('internalComment', 'Internal Comment');
         $fields[] = $this->createField('referer');
+        $fields[] = $this->createField('state');
         $fields[] = $this->createField('country');
         $fields[] = $this->createField('subscribed', '', '', 'Boolean');
         $fields[] = $this->createField('failedLogins', 'Failed logins', '', 'Integer');
         $fields[] = $this->createField('billing.company', 'Company');
         $fields[] = $this->createField('billing.department', 'Department');
         $fields[] = $this->createField('billing.salutation', 'Salutation');
-        $fields[] = $this->createField('billing.firstName', 'Firstname');
-        $fields[] = $this->createField('billing.lastName', 'Lastname');
+        $fields[] = $this->createField('billing.firstname', 'Firstname');
+        $fields[] = $this->createField('billing.lastname', 'Lastname');
         $fields[] = $this->createField('billing.street', 'Street');
-        $fields[] = $this->createField('billing.zipCode', 'Zipcode');
+        $fields[] = $this->createField('billing.zipcode', 'Zipcode');
         $fields[] = $this->createField('billing.city', 'City');
         $fields[] = $this->createField('billing.phone', 'Phone');
+        $fields[] = $this->createField('billing.title', 'Title');
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
         if (\Shopware::VERSION >= '5.2') {
@@ -357,6 +375,9 @@ class NewsletterCustomer extends Resource
                     break;
                 case 'country':
                     $result['billing'][] = 'countryId';
+                    break;
+                case 'state':
+                    $result['billing'][] = 'stateId';
                     break;
                 case 'id':
                 case 'subscribed':
