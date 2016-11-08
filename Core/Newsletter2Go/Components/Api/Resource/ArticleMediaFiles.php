@@ -33,10 +33,10 @@ class ArticleMediaFiles extends Resource
                 $imagePath = $image['path'];
                 $imageExt = $image['extension'];
                 $data['images'][] = $mediaPath . $imagePath . '.' . $imageExt;
-            }
 
-            foreach ($thumbnailSizes as $ts) {
-                $data['thumbnails'][] = $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
+                foreach ($thumbnailSizes as $ts) {
+                    $data['thumbnails'][] = $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
+                }
             }
         }
 
