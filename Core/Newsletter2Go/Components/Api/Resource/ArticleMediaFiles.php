@@ -72,7 +72,6 @@ class ArticleMediaFiles extends Resource
             ->from('Shopware\Models\Article\Image', 'images')
             ->innerJoin('images.article', 'article')
             ->where('article.id = :articleId')
-            ->andWhere('images.main = 1')
             ->orderBy('images.position', 'ASC')
             ->andWhere('images.parentId IS NULL')
             ->setParameters(array('articleId' => $articleId));
