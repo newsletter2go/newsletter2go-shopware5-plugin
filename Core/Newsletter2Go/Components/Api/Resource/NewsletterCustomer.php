@@ -125,13 +125,11 @@ class NewsletterCustomer extends Resource
         $customers = $pagination->getIterator()->getArrayCopy();
 
         $country = array();
-        if (isset($customer['billing']['countryId'])) {
-            $countries = Shopware()->Db()->fetchAll('SELECT * FROM s_core_countries');
-            foreach ($countries as $c) {
-                $country[$c['id']] = $c['countryname'];
-            }
+        $countries = Shopware()->Db()->fetchAll('SELECT * FROM s_core_countries');
+        foreach ($countries as $c) {
+            $country[$c['id']] = $c['countryname'];
         }
-
+        
         $hasId = in_array('id', $fields);
         $hasSubs = in_array('subscribed', $fields);
         $hasSalutation = in_array('billing.salutation', $fields);
