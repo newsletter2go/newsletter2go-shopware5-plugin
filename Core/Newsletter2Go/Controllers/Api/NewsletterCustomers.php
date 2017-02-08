@@ -107,6 +107,26 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
         $subscribers = Shopware()->Db()->fetchAll($q);
 
+        foreach ($subscribers as $key => $value) {
+
+            $sql = 'SELECT * '
+                . 'FROM s_campaigns_maildata '
+                . 'WHERE email = \'' . $value['email'] . '\' ';
+
+            $subscriberData = Shopware()->Db()->fetchRow($sql);
+
+            if ($subscriberData != null) {
+
+                $subscribers[$key]['firstName'] = $subscriberData['firstname'];
+                $subscribers[$key]['lastName'] = $subscriberData['lastname'];
+                $subscribers[$key]['salutation'] = $subscriberData['salutation'];
+                $subscribers[$key]['street'] = $subscriberData['street'];
+                $subscribers[$key]['zipCode'] = $subscriberData['zipcode'];
+                $subscribers[$key]['city'] = $subscriberData['city'];
+
+            }
+        }
+
         return array('data' => $subscribers);
     }
 
