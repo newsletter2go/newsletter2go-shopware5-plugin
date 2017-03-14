@@ -32,7 +32,7 @@ class Shopware_Controllers_Api_ArticleMediaFiles extends Shopware_Controllers_Ap
     {
         $id = $this->Request()->getParam('id');
 
-        if (isset($id) and !empty($id)){
+        if (isset($id) && !empty($id)){
             $medias = $this->resource->getArticleMediaFiles($id);
             $result = array(
                 'success' => true,
