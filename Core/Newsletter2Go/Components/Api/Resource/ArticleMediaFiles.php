@@ -41,11 +41,13 @@ class ArticleMediaFiles extends Resource
                     $mediaService->getUrl('media/image/' . $img) : $mediaPath . $img;
 
                 foreach ($thumbnailSizes as $ts) {
-                    $data['thumbnails'][] = $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
+                    $data['thumbnails'][] = version_compare($version, self::COMPARE_VERSION) >= 0 ?
+                        $mediaService->getUrl('media/image/thumbnail/' . $imagePath . "_$ts." . $imageExt) :
+                        $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
+
                 }
             }
         }
-
 
         return $data;
     }
