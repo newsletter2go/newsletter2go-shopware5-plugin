@@ -19,7 +19,6 @@ class Shopware_Controllers_Api_ArticleMediaFiles extends Shopware_Controllers_Ap
      */
     public function indexAction()
     {
-
         $result = array(
             'success' => false,
             'message' => 'Please send GET request'
