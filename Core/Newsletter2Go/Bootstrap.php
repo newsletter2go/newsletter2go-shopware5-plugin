@@ -269,6 +269,18 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         return $this->Path() . 'Controllers/Api/ArticleSeoLink.php';
     }
 
+    /**
+     * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Api_ArticleUnitName
+     * event. This event is fired when shopware trying to access the plugin ArticleUnitName controller.
+     *
+     * @param Enlight_Event_EventArgs $arguments
+     * @return string
+     */
+    public function getArticleUnitName(Enlight_Event_EventArgs $arguments)
+    {
+        return $this->Path() . 'Controllers/Api/ArticleUnitName.php';
+    }
+
     protected function registerCustomModels()
     {
         $this->Application()->Loader()->registerNamespace(
@@ -357,6 +369,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->registerController('Api', 'CustomerFields');
             $this->registerController('Api', 'ArticleMediaFiles');
             $this->registerController('Api', 'ArticleSeoLink');
+            $this->registerController('Api', 'ArticleUnitName');
         } else {
             $path = 'Enlight_Controller_Dispatcher_ControllerPath_';
             $this->subscribeEvent($path . 'Backend_Newsletter2go', 'getNewsletter2goBackendController');
@@ -366,6 +379,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->subscribeEvent($path . 'Api_CustomerFields', 'getCustomerFieldsApiController');
             $this->subscribeEvent($path . 'Api_ArticleMediaFiles', 'getArticleMediaFilesApiController');
             $this->subscribeEvent($path . 'Api_ArticleSeoLink', 'getArticleSeoLinkApiController');
+            $this->subscribeEvent($path . 'Api_ArticleUnitName', 'getArticleUnitNameApiController');
         }
     }
 
