@@ -1,5 +1,7 @@
 <?php
 
+use Newsletter2Go\Components\Newsletter2GoHelper;
+
 /**
  * @category  Shopware
  * @package   Shopware\Plugins\n2goExtendApi
@@ -38,9 +40,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     public function getVersion()
     {
-
-        return '4.1.11';
-
+        return '4.2.00';
     }
 
     /**
@@ -65,7 +65,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     /**
      * This derived method is executed each time if this plugin will will be installed
      *
-     * @return bool
+     * @return array
      */
     public function install()
     {
@@ -134,7 +134,8 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     public function onBackendPostDispatch(Enlight_Event_EventArgs $args)
     {
-        /**@var $view Enlight_View_Default */
+        /** @var $args Enlight_Controller_ActionEventArgs */
+        /** @var $view Enlight_View_Default */
         $view = $args->getSubject()->View();
         // Add template directory
         $view->addTemplateDir($this->Path() . 'Views/');
@@ -150,34 +151,34 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
-        $scriptUrl = Shopware()->Db()->fetchOne("SELECT value FROM `s_core_config_elements` WHERE name = 'newsletter2goScriptUrl'");
-        if (isset($scriptUrl) && !empty($scriptUrl)) {
-            /* @var Enlight_View_Default $view */
-            $view = $args->getSubject()->View();
+        /** @var $args Enlight_Controller_ActionEventArgs */
+        /** @var Enlight_View_Default $view */
+        $view = $args->getSubject()->View();
 
-            /* @var Enlight_Controller_Request_RequestHttp $request */
-            $request = $args->getRequest();
+        /* @var Enlight_Controller_Request_RequestHttp $request */
+        $request = $args->getRequest();
 
-            $view->addTemplateDir($this->Path() . 'Views/');
-            $view->extendsTemplate('frontend/plugins/n2go_jstracking/header.tpl');
-            $userData = Shopware()->Modules()->Admin()->sGetUserData();
-            $view->assign('ycTrackingId', isset($userData['additional']['user']) ? $userData['additional']['user']['id'] : '');
-            $view->assign('ycTrackingScriptUrl', preg_replace('(^https?:)', '', $scriptUrl));
+        $view->addTemplateDir($this->Path() . 'Views/');
 
-            $actionName = $request->getActionName();
-            $controllerName = $request->getControllerName();
-            if ($controllerName === 'account') {
-                if ($actionName === 'logout' || $actionName === 'ajax_logout') {
-                    $view->extendsTemplate('frontend/plugins/n2go_jstracking/ajax_logout.tpl');
-                    $view->assign('ycTrackLogout', true);
-                }
-            } else if ($controllerName === 'checkout' && $actionName === 'finish') {
-                // needed for buy event
-                $view->extendsTemplate('frontend/plugins/n2go_jstracking/finish.tpl');
-            } else if ($controllerName === 'listing') {
-                // needed for basket event
-                $view->extendsTemplate('frontend/plugins/n2go_jstracking/box_article.tpl');
-            }
+        $repository = Shopware()->Models()->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go');
+        $companyModel = $repository->findOneBy(array('name' => 'companyId'));
+        $trackOrdersModel =  $repository->findOneBy(array('name' => 'trackOrders'));
+        if (!$companyModel || !$trackOrdersModel) {
+            return;
+        }
+
+        $companyId = $companyModel->getValue();
+        $tracking = $trackOrdersModel->getValue();
+
+        $actionName = $request->getActionName();
+        $controllerName = $request->getControllerName();
+
+        if ($controllerName === 'checkout' && $actionName === 'finish' && $companyId && $tracking) {
+            //order confirmation event
+            $helper = new Newsletter2GoHelper();
+            $view->assign('companyId', $companyId);
+            $view->assign('helper', $helper);
+            $view->extendsTemplate('frontend/plugins/n2go_jstracking/finish.tpl');
         }
     }
 
@@ -350,6 +351,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     {
         // Added to support older versions (<4.2.0)
         if (method_exists($this, 'registerController')) {
+            $this->registerController('Frontend', 'Newsletter2goCallback');
             $this->registerController('Backend', 'Newsletter2go');
             $this->registerController('Api', 'NewsletterCustomers');
             $this->registerController('Api', 'NewsletterScriptUrls');

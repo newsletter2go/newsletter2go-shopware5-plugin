@@ -63,6 +63,19 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     }
 
     /**
+     * Saves conversion tracking in database
+     */
+    public function setTrackingAction()
+    {
+        $trackOrders =  $this->getConfigParam('trackOrders');
+        $trackOrders = $trackOrders ? 0 : 1;
+        $this->saveConfigParam('trackOrders', $trackOrders);
+        $this->em->flush();
+        $this->getDataAction();
+
+    }
+
+    /**
      * Generates random string with $length characters
      * 
      * @param int $length

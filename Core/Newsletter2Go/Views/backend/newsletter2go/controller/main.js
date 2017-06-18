@@ -23,6 +23,9 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             },
             'connect-nl2go': {
                 connect: me.onConnect
+            },
+            'tracking-nl2go': {
+                tracking: me.onTracking
             }
         });
 
@@ -56,16 +59,52 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
         });
     },
     onConnect: function (record) {
-        var n2gUrl = 'https://ui.newsletter2go.com/integrations/connect/SW/';
+        var n2gUrl = 'https://ui-sandbox.newsletter2go.com/integrations/connect/SW/';
         var params = [
-            'version=4100',
+            'version=4200',
             'username=' + Ext.ComponentQuery.query('[name=shopUsername]')[0].value,
             'password=' + Ext.ComponentQuery.query('[name=shopApiKey]')[0].value,
             'language=' + Ext.editorLang.split('_')[0],
-            'url=' + encodeURI(record.baseUrl)
+            'url=' + encodeURI(record.baseUrl),
+            'callback=' + encodeURI(record.baseUrl) + 'Newsletter2goCallback'
         ];
 
         window.open(n2gUrl + '?' + params.join('&'), '_blank');
+    },
+    onTracking: function () {
+        var message;
+
+        Ext.Ajax.request({
+            url: '{url controller="Newsletter2go" action="setTracking"}',
+            method: 'POST',
+            success: function(response) {
+                var result = Ext.decode(response.responseText),
+                    button = Ext.ComponentQuery.query('#nl2goTrackingButton'),
+                    label = Ext.ComponentQuery.query('#nl2goTrackingLabel'),
+                    i;
+
+                if (result.data.trackOrders) {
+                    labelText = ' Enabled';
+                    buttonText = 'Disable Tracking';
+                } else {
+                    labelText = ' Disabled';
+                    buttonText = 'Enable Tracking';
+                }
+
+                for (i = 0; i < button.length; i++) {
+                    button[i].setText(buttonText);
+                    label[i].getEl().dom.firstElementChild.firstElementChild.textContent = labelText;
+                }
+
+                message = Ext.String.format('Newsletter2Go conversion tracking reconfigured successfully!', '');
+                Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
+            },
+            failure: function (response) {
+                var result = Ext.decode(response.responseText);
+                message = Ext.String.format(result.message, '');
+                Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
+            }
+        });
     }
 });
 //{/block}
