@@ -39,7 +39,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     public function getVersion()
     {
 
-        return '4.1.07';
+        return '4.1.09';
 
     }
 
