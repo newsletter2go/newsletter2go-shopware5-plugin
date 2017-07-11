@@ -8,6 +8,7 @@ namespace Shopware\Components\Api\Resource;
  */
 class ArticleMediaFiles extends Resource
 {
+    const COMPARE_VERSION = '5.1.0';
 
     /**
      * Retrieves the list of article\'s media files
@@ -19,6 +20,8 @@ class ArticleMediaFiles extends Resource
     {
         $this->checkPrivilege('read');
         $mediaPath = Shopware()->Modules()->System()->sPathArticleImg;
+        $mediaService = Shopware()->Container()->get('shopware_media.media_service');
+        $version = \Shopware::VERSION;
         $thumbnailSizes = $this->getArticleThumbnailSizes();
         $data = array(
             'images' => array(),
@@ -32,14 +35,19 @@ class ArticleMediaFiles extends Resource
             foreach ($images as $key => $image) {
                 $imagePath = $image['path'];
                 $imageExt = $image['extension'];
-                $data['images'][] = $mediaPath . $imagePath . '.' . $imageExt;
+                $img = $imagePath . '.' . $imageExt;
+
+                $data['images'][] = version_compare($version, self::COMPARE_VERSION) >= 0 ?
+                    $mediaService->getUrl('media/image/' . $img) : $mediaPath . $img;
 
                 foreach ($thumbnailSizes as $ts) {
-                    $data['thumbnails'][] = $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
+                    $data['thumbnails'][] = version_compare($version, self::COMPARE_VERSION) >= 0 ?
+                        $mediaService->getUrl('media/image/thumbnail/' . $imagePath . "_$ts." . $imageExt) :
+                        $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
+
                 }
             }
         }
-
 
         return $data;
     }
