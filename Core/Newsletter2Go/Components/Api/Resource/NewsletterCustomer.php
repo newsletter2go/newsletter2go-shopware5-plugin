@@ -155,16 +155,13 @@ class NewsletterCustomer extends Resource
                 unset($customer[$billingAddrKey]['countryId']);
             }
 
-            if (!empty($customer[$billingAddrKey]['stateId'])) {
-                $customer['state'] = $state[$customer[$billingAddrKey]['stateId']];
-                unset($customer[$billingAddrKey]['stateId']);
-            } else {
-                $customer['state'] = '';
-                unset($customer[$billingAddrKey]['stateId']);
-            }
+            $customer['state'] = empty($customer[$billingAddrKey]['stateId']) ? '' : $state[$customer[$billingAddrKey]['stateId']];
+            unset($customer[$billingAddrKey]['stateId']);
 
-            foreach ($customer[$billingAddrKey] as &$defaultBillingAddres) {
-                is_null($defaultBillingAddres) ? $defaultBillingAddres = '' : '';
+            foreach ($customer[$billingAddrKey] as &$defaultBillingAddress) {
+                if (is_null($defaultBillingAddress)) {
+                    $defaultBillingAddress = '';
+                }
             }
 
             if ($hasSubs) {
@@ -250,8 +247,6 @@ class NewsletterCustomer extends Resource
                     $om->flush();
 
                     return true;
-                } else {
-                    return false;
                 }
             }
 
