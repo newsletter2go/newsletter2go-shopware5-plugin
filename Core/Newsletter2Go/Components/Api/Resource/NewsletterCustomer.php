@@ -149,15 +149,19 @@ class NewsletterCustomer extends Resource
         }
 
         foreach ($customers as &$customer) {
-            if (isset($customer[$billingAddressField]['countryId'])) {
-                $customer['country'] = $country[$customer[$billingAddressField]['countryId']];
-                unset($customer[$billingAddressField]['countryId']);
+            $address = $customer[$billingAddressField];
+            unset($customer[$billingAddressField]);
+            $customer['billing'] = $address;
+
+            if (isset($customer['billing']['countryId'])) {
+                $customer['country'] = $country[$customer['billing']['countryId']];
+                unset($customer['billing']['countryId']);
             }
 
-            $customer['state'] = empty($customer[$billingAddressField]['stateId']) ? '' : $state[$customer[$billingAddressField]['stateId']];
-            unset($customer[$billingAddressField]['stateId']);
+            $customer['state'] = empty($customer['billing']['stateId']) ? '' : $state[$customer['billing']['stateId']];
+            unset($customer['billing']['stateId']);
 
-            foreach ($customer[$billingAddressField] as &$defaultBillingAddress) {
+            foreach ($customer['billing'] as &$defaultBillingAddress) {
                 if (is_null($defaultBillingAddress)) {
                     $defaultBillingAddress = '';
                 }
@@ -168,12 +172,12 @@ class NewsletterCustomer extends Resource
             }
 
             if ($hasSalutation) {
-                $salutation = strtolower($customer[$billingAddressField]['salutation']);
+                $salutation = strtolower($customer['billing']['salutation']);
 
                 if ($salutation === 'mr') {
-                    $customer[$billingAddressField]['salutation'] = 'm';
+                    $customer['billing']['salutation'] = 'm';
                 } else if ($salutation === 'ms') {
-                    $customer[$billingAddressField]['salutation'] = 'f';
+                    $customer['billing']['salutation'] = 'f';
                 }
             }
 
@@ -191,7 +195,7 @@ class NewsletterCustomer extends Resource
             }
 
             if (!empty($arrangedFields['billing'])) {
-                unset($customer[$billingAddressField]['id']);
+                unset($customer['billing']['id']);
             }
 
             if (!$hasId) {
