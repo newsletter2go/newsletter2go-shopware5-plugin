@@ -81,17 +81,18 @@ class NewsletterCustomer extends Resource
     {
         $this->checkPrivilege('read');
 
+        $billingAddressField = $this->useAddressModel() ? 'defaultBillingAddress' : 'billing';
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
             ->where('customer.active = true');
 
-        $selectFields[] = 'partial customer.{' . implode(',', $arrangedFields['customer']) . '}';
+        $selectFields[] = 'PARTIAL customer.{' . implode(',', $arrangedFields['customer']) . '}';
         if (!empty($arrangedFields['billing'])) {
             $arrangedFields['billing'][] = 'id';
-            $builder->leftJoin('customer.' . $this->getBillingAddressKey(), 'billing');
-            $selectFields[] = 'partial billing.{' . implode(',', $arrangedFields['billing']) . '}';
+            $builder->leftJoin('customer.' . $billingAddressField, 'billing');
+            $selectFields[] = 'PARTIAL billing.{' . implode(',', $arrangedFields['billing']) . '}';
         }
 
         if ($subscribed) {
@@ -141,8 +142,6 @@ class NewsletterCustomer extends Resource
             }
         }
 
-        $billingAddrKey = $this->getBillingAddressKey();
-
         $state = array();
         $states = Shopware()->Db()->fetchAll('SELECT name FROM s_core_countries_states');
         foreach ($states as $s) {
@@ -150,15 +149,15 @@ class NewsletterCustomer extends Resource
         }
 
         foreach ($customers as &$customer) {
-            if (isset($customer[$billingAddrKey]['countryId'])) {
-                $customer['country'] = $country[$customer[$billingAddrKey]['countryId']];
-                unset($customer[$billingAddrKey]['countryId']);
+            if (isset($customer[$billingAddressField]['countryId'])) {
+                $customer['country'] = $country[$customer[$billingAddressField]['countryId']];
+                unset($customer[$billingAddressField]['countryId']);
             }
 
-            $customer['state'] = empty($customer[$billingAddrKey]['stateId']) ? '' : $state[$customer[$billingAddrKey]['stateId']];
-            unset($customer[$billingAddrKey]['stateId']);
+            $customer['state'] = empty($customer[$billingAddressField]['stateId']) ? '' : $state[$customer[$billingAddressField]['stateId']];
+            unset($customer[$billingAddressField]['stateId']);
 
-            foreach ($customer[$billingAddrKey] as &$defaultBillingAddress) {
+            foreach ($customer[$billingAddressField] as &$defaultBillingAddress) {
                 if (is_null($defaultBillingAddress)) {
                     $defaultBillingAddress = '';
                 }
@@ -169,12 +168,12 @@ class NewsletterCustomer extends Resource
             }
 
             if ($hasSalutation) {
-                $salutation = strtolower($customer[$billingAddrKey]['salutation']);
+                $salutation = strtolower($customer[$billingAddressField]['salutation']);
 
                 if ($salutation === 'mr') {
-                    $customer[$billingAddrKey]['salutation'] = 'm';
+                    $customer[$billingAddressField]['salutation'] = 'm';
                 } else if ($salutation === 'ms') {
-                    $customer[$billingAddrKey]['salutation'] = 'f';
+                    $customer[$billingAddressField]['salutation'] = 'f';
                 }
             }
 
@@ -192,7 +191,7 @@ class NewsletterCustomer extends Resource
             }
 
             if (!empty($arrangedFields['billing'])) {
-                unset($customer[$billingAddrKey]['id']);
+                unset($customer[$billingAddressField]['id']);
             }
 
             if (!$hasId) {
@@ -357,17 +356,26 @@ class NewsletterCustomer extends Resource
 
     private function arrangeFields($fields)
     {
+        // Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
+        $addressModelColumnMap = [
+            'firstName' => 'firstname',
+            'lastName' => 'lastname',
+            'zipCode' => 'zipcode',
+        ];
+
         $result = array(
             'billing'  => array(),
             'customer' => array('id'),
             'order'    => array(),
             'country'  => array(),
         );
+
         foreach ($fields as $field) {
             $parts = explode('.', $field);
             switch ($parts[0]) {
                 case 'billing':
-                    $result['billing'][] = $parts[1];
+                    $result['billing'][] = $this->useAddressModel() && isset($addressModelColumnMap[$parts[1]])
+                        ? $addressModelColumnMap[$parts[1]] : $parts[1];
                     break;
                 case 'country':
                     $result['billing'][] = 'countryId';
@@ -396,10 +404,10 @@ class NewsletterCustomer extends Resource
 
     /**
      * @see https://github.com/shopware/shopware/commit/743d006fd9b362a4bcbe5b12b458d54551520ba8
-     * @return string
+     * @return bool
      */
-    private function getBillingAddressKey()
+    private function useAddressModel()
     {
-        return \Shopware::VERSION >= '5.3' ? 'defaultBillingAddress' : 'billing';
+        return \Shopware::VERSION >= '5.3';
     }
 }
