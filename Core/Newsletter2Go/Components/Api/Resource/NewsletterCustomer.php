@@ -374,7 +374,7 @@ class NewsletterCustomer extends Resource
             $parts = explode('.', $field);
             switch ($parts[0]) {
                 case 'billing':
-                    $result['billing'][] = $this->useAddressModel() && isset($addressModelColumnMap[$parts[1]])
+                    $result['billing'][] = ($this->useAddressModel() && isset($addressModelColumnMap[$parts[1]]))
                         ? $addressModelColumnMap[$parts[1]] : $parts[1];
                     break;
                 case 'country':
