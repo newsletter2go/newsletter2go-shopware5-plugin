@@ -51,7 +51,6 @@ class Nl2go_ResponseHelper
  */
 class NewsletterCustomer extends Resource
 {
-
     /**
      * @return \Shopware\Models\Customer\Repository
      */
@@ -82,17 +81,18 @@ class NewsletterCustomer extends Resource
     {
         $this->checkPrivilege('read');
 
+        $billingAddressField = $this->useAddressModel() ? 'defaultBillingAddress' : 'billing';
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
             ->where('customer.active = true');
 
-        $selectFields[] = 'partial customer.{' . implode(',', $arrangedFields['customer']) . '}';
+        $selectFields[] = 'PARTIAL customer.{' . implode(',', $arrangedFields['customer']) . '}';
         if (!empty($arrangedFields['billing'])) {
             $arrangedFields['billing'][] = 'id';
-            $builder->leftJoin('customer.billing', 'billing');
-            $selectFields[] = 'partial billing.{' . implode(',', $arrangedFields['billing']) . '}';
+            $builder->leftJoin('customer.' . $billingAddressField, 'billing');
+            $selectFields[] = 'PARTIAL billing.{' . implode(',', $arrangedFields['billing']) . '}';
         }
 
         if ($subscribed) {
@@ -125,11 +125,11 @@ class NewsletterCustomer extends Resource
         $customers = $pagination->getIterator()->getArrayCopy();
 
         $country = array();
-        $countries = Shopware()->Db()->fetchAll('SELECT * FROM s_core_countries');
+        $countries = Shopware()->Db()->fetchAll('SELECT countryname FROM s_core_countries');
         foreach ($countries as $c) {
             $country[$c['id']] = $c['countryname'];
         }
-        
+
         $hasId = in_array('id', $fields);
         $hasSubs = in_array('subscribed', $fields);
         $hasSalutation = in_array('billing.salutation', $fields);
@@ -142,10 +142,29 @@ class NewsletterCustomer extends Resource
             }
         }
 
+        $state = array();
+        $states = Shopware()->Db()->fetchAll('SELECT name FROM s_core_countries_states');
+        foreach ($states as $s) {
+            $state[$s['id']] = $s['name'];
+        }
+
         foreach ($customers as &$customer) {
+            $address = $customer[$billingAddressField];
+            unset($customer[$billingAddressField]);
+            $customer['billing'] = $address;
+
             if (isset($customer['billing']['countryId'])) {
                 $customer['country'] = $country[$customer['billing']['countryId']];
                 unset($customer['billing']['countryId']);
+            }
+
+            $customer['state'] = empty($customer['billing']['stateId']) ? '' : $state[$customer['billing']['stateId']];
+            unset($customer['billing']['stateId']);
+
+            foreach ($customer['billing'] as &$defaultBillingAddress) {
+                if (is_null($defaultBillingAddress)) {
+                    $defaultBillingAddress = '';
+                }
             }
 
             if ($hasSubs) {
@@ -231,8 +250,6 @@ class NewsletterCustomer extends Resource
                     $om->flush();
 
                     return true;
-                } else {
-                    return false;
                 }
             }
 
@@ -302,6 +319,7 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('paymentId', 'Price group Id.', '', 'Integer');
         $fields[] = $this->createField('internalComment', 'Internal Comment');
         $fields[] = $this->createField('referer');
+        $fields[] = $this->createField('state');
         $fields[] = $this->createField('country');
         $fields[] = $this->createField('subscribed', '', '', 'Boolean');
         $fields[] = $this->createField('failedLogins', 'Failed logins', '', 'Integer');
@@ -314,6 +332,7 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.zipCode', 'Zipcode');
         $fields[] = $this->createField('billing.city', 'City');
         $fields[] = $this->createField('billing.phone', 'Phone');
+        $fields[] = $this->createField('billing.title', 'Title');
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
         if (\Shopware::VERSION >= '5.2') {
@@ -341,20 +360,32 @@ class NewsletterCustomer extends Resource
 
     private function arrangeFields($fields)
     {
+        // Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
+        $addressModelColumnMap = [
+            'firstName' => 'firstname',
+            'lastName' => 'lastname',
+            'zipCode' => 'zipcode',
+        ];
+
         $result = array(
             'billing'  => array(),
             'customer' => array('id'),
             'order'    => array(),
             'country'  => array(),
         );
+
         foreach ($fields as $field) {
             $parts = explode('.', $field);
             switch ($parts[0]) {
                 case 'billing':
-                    $result['billing'][] = $parts[1];
+                    $result['billing'][] = ($this->useAddressModel() && isset($addressModelColumnMap[$parts[1]]))
+                        ? $addressModelColumnMap[$parts[1]] : $parts[1];
                     break;
                 case 'country':
                     $result['billing'][] = 'countryId';
+                    break;
+                case 'state':
+                    $result['billing'][] = 'stateId';
                     break;
                 case 'id':
                 case 'subscribed':
@@ -375,4 +406,12 @@ class NewsletterCustomer extends Resource
         return $result;
     }
 
+    /**
+     * @see https://github.com/shopware/shopware/commit/743d006fd9b362a4bcbe5b12b458d54551520ba8
+     * @return bool
+     */
+    private function useAddressModel()
+    {
+        return \Shopware::VERSION >= '5.3';
+    }
 }
