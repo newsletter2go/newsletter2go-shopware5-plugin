@@ -52,7 +52,17 @@ class Nl2go_ResponseHelper
 class NewsletterCustomer extends Resource
 {
     /**
-     * @return \Shopware\Models\Customer\Repository
+     * Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
+     * @var array<string, string>
+     */
+    private $addressModelColumnMap = [
+        'firstName' => 'firstname',
+        'lastName' => 'lastname',
+        'zipCode' => 'zipcode',
+    ];
+
+    /**
+     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Customer\Repository
      */
     public function getRepositoryCustomer()
     {
@@ -60,7 +70,7 @@ class NewsletterCustomer extends Resource
     }
 
     /**
-     * @return \Shopware\Models\Newsletter\Repository
+     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Newsletter\Repository
      */
     public function getRepositoryAddress()
     {
@@ -81,7 +91,8 @@ class NewsletterCustomer extends Resource
     {
         $this->checkPrivilege('read');
 
-        $billingAddressField = $this->useAddressModel() ? 'defaultBillingAddress' : 'billing';
+        $useAddressModel = $this->useAddressModel();
+        $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
         $builder = $this->getRepositoryCustomer()
@@ -149,9 +160,9 @@ class NewsletterCustomer extends Resource
         }
 
         foreach ($customers as &$customer) {
-            $address = $customer[$billingAddressField];
+            $billing = $customer[$billingAddressField];
             unset($customer[$billingAddressField]);
-            $customer['billing'] = $address;
+            $customer['billing'] = $billing;
 
             if (isset($customer['billing']['countryId'])) {
                 $customer['country'] = $country[$customer['billing']['countryId']];
@@ -200,6 +211,15 @@ class NewsletterCustomer extends Resource
 
             if (!$hasId) {
                 unset($customer['id']);
+            }
+
+            if ($useAddressModel) {
+                foreach ($this->addressModelColumnMap as $returnField => $queriedField) {
+                    if (isset($customer['billing'][$queriedField])) {
+                        $customer['billing'][$returnField] = $customer['billing'][$queriedField];
+                        unset($customer['billing'][$queriedField]);
+                    }
+                }
             }
         }
 
@@ -358,28 +378,27 @@ class NewsletterCustomer extends Resource
         );
     }
 
+    /**
+     * @param string[] $fields
+     *
+     * @return array<string|string[]>
+     */
     private function arrangeFields($fields)
     {
-        // Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
-        $addressModelColumnMap = [
-            'firstName' => 'firstname',
-            'lastName' => 'lastname',
-            'zipCode' => 'zipcode',
-        ];
-
         $result = array(
             'billing'  => array(),
             'customer' => array('id'),
             'order'    => array(),
             'country'  => array(),
         );
+        $useAddressModel = $this->useAddressModel();
 
         foreach ($fields as $field) {
             $parts = explode('.', $field);
             switch ($parts[0]) {
                 case 'billing':
-                    $result['billing'][] = ($this->useAddressModel() && isset($addressModelColumnMap[$parts[1]]))
-                        ? $addressModelColumnMap[$parts[1]] : $parts[1];
+                    $result['billing'][] = ($useAddressModel && isset($this->addressModelColumnMap[$parts[1]]))
+                        ? $this->addressModelColumnMap[$parts[1]] : $parts[1];
                     break;
                 case 'country':
                     $result['billing'][] = 'countryId';
