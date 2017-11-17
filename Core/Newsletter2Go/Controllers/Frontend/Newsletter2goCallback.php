@@ -30,7 +30,7 @@ class Shopware_Controllers_Frontend_Newsletter2goCallback extends Enlight_Contro
 
     public function indexAction()
     {
-        $companyId = $this->Request()->getParam('int_id');
+        $companyId = $this->Request()->getParam('company_id');
 
         if (!empty($companyId)) {
             $element = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')
