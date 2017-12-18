@@ -223,7 +223,14 @@ class NewsletterCustomer extends Resource
             }
         }
 
-        return array('data' => $customers);
+        $returnCustomers = [];
+        foreach ($customers as $customer){
+            if($customer['subscribed']){
+                array_push($returnCustomers, $customer);
+            }
+        }
+
+        return array('data' => $returnCustomers);
     }
 
     /**
