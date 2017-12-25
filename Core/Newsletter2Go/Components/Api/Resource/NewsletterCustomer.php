@@ -87,13 +87,14 @@ class NewsletterCustomer extends Resource
      * @param int $subShopId
      * @return array
      */
-    public function getList($subscribed = false, $offset = false, $limit = false, $group = '', $fields = array(), $emails = array(), $subShopId = 0)
+    public function getList($subscribed = false, $offset = false, $limit = false, $group = '', $fields = [], $emails = [], $subShopId = 0)
     {
         $this->checkPrivilege('read');
 
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
-        $selectFields = array();
+        $selectFields = [];
+        $returnCustomers = [];
         $arrangedFields = $this->arrangeFields($fields);
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
@@ -135,7 +136,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $country = array();
+        $country = [];
         $countries = Shopware()->Db()->fetchAll('SELECT countryname FROM s_core_countries');
         foreach ($countries as $c) {
             $country[$c['id']] = $c['countryname'];
@@ -147,13 +148,13 @@ class NewsletterCustomer extends Resource
         $hasBirthday = in_array('billing.birthday', $fields) || in_array('birthday', $fields);
         if ($hasSubs) {
             $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = array();
+            $subscribers = [];
             foreach ($emails as $e) {
                 $subscribers[$e['email']] = true;
             }
         }
 
-        $state = array();
+        $state = [];
         $states = Shopware()->Db()->fetchAll('SELECT name FROM s_core_countries_states');
         foreach ($states as $s) {
             $state[$s['id']] = $s['name'];
@@ -221,16 +222,14 @@ class NewsletterCustomer extends Resource
                     }
                 }
             }
-        }
 
-        $returnCustomers = [];
-        foreach ($customers as $customer){
-            if($customer['subscribed']){
+            if($subscribed && $customer['subscribed']){
                 array_push($returnCustomers, $customer);
             }
         }
 
-        return array('data' => $returnCustomers);
+        return ($subscribed) ? ['data' => $returnCustomers] : ['data' => $customers];
+
     }
 
     /**
