@@ -2,7 +2,6 @@
 
 namespace Shopware\Components\Api\Resource;
 
-use Shopware\Components\Api\Exception as ApiException;
 use Shopware\Models\Newsletter\Address;
 
 class Nl2go_ResponseHelper
@@ -21,12 +20,11 @@ class Nl2go_ResponseHelper
      */
     const ERRNO_PLUGIN_OTHER = 'int-1-600';
 
-
     static function generateErrorResponse($message, $errorCode, $context = null)
     {
         $res = array(
-            'success'   => false,
-            'message'   => $message,
+            'success' => false,
+            'message' => $message,
             'errorcode' => $errorCode,
         );
         if ($context != null) {
@@ -85,10 +83,18 @@ class NewsletterCustomer extends Resource
      * @param array $fields
      * @param array $emails
      * @param int $subShopId
+     *
      * @return array
      */
-    public function getList($subscribed = false, $offset = false, $limit = false, $group = '', $fields = [], $emails = [], $subShopId = 0)
-    {
+    public function getList(
+        $subscribed = false,
+        $offset = false,
+        $limit = false,
+        $group = '',
+        $fields = [],
+        $emails = [],
+        $subShopId = 0
+    ) {
         $this->checkPrivilege('read');
 
         $useAddressModel = $this->useAddressModel();
@@ -108,7 +114,9 @@ class NewsletterCustomer extends Resource
         }
 
         if ($subscribed) {
-            $builder->andWhere('customer.email IN (SELECT address.email FROM Shopware\Models\Newsletter\Address address)');
+            $builder->andWhere(
+                'customer.email IN (SELECT address.email FROM Shopware\Models\Newsletter\Address address)'
+            );
         }
 
         if ($group) {
@@ -138,9 +146,7 @@ class NewsletterCustomer extends Resource
 
         $country = [];
         $countries = Shopware()->Db()->fetchAll('SELECT countryname FROM s_core_countries');
-        foreach ($countries as $c) {
-            $country[$c['id']] = $c['countryname'];
-        }
+        array_column($countries, 'countryname', 'id');
 
         $hasId = in_array('id', $fields);
         $hasSubs = in_array('subscribed', $fields);
@@ -148,17 +154,11 @@ class NewsletterCustomer extends Resource
         $hasBirthday = in_array('billing.birthday', $fields) || in_array('birthday', $fields);
         if ($hasSubs) {
             $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = [];
-            foreach ($emails as $e) {
-                $subscribers[$e['email']] = true;
-            }
+            $subscribers = array_fill_keys($emails, true);
         }
 
-        $state = [];
         $states = Shopware()->Db()->fetchAll('SELECT name FROM s_core_countries_states');
-        foreach ($states as $s) {
-            $state[$s['id']] = $s['name'];
-        }
+        $state = array_column($states, 'name', 'id');
 
         foreach ($customers as &$customer) {
             $billing = $customer[$billingAddressField];
@@ -183,13 +183,19 @@ class NewsletterCustomer extends Resource
                 $customer['subscribed'] = isset($subscribers[$customer['email']]);
             }
 
+            if ($subscribed && !$customer['subscribed']) {
+                continue;
+            }
+
             if ($hasSalutation) {
                 $salutation = strtolower($customer['billing']['salutation']);
 
                 if ($salutation === 'mr') {
                     $customer['billing']['salutation'] = 'm';
-                } else if ($salutation === 'ms') {
-                    $customer['billing']['salutation'] = 'f';
+                } else {
+                    if ($salutation === 'ms') {
+                        $customer['billing']['salutation'] = 'f';
+                    }
                 }
             }
 
@@ -198,8 +204,10 @@ class NewsletterCustomer extends Resource
                 $birthday = null;
                 if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
                     $birthday = $customer['birthday'];
-                } else if ($customer['billing']['birthday'] !== null) {
-                    $birthday = $customer['billing']['birthday'];
+                } else {
+                    if ($customer['billing']['birthday'] !== null) {
+                        $birthday = $customer['billing']['birthday'];
+                    }
                 }
 
                 $customer['birthday'] = $birthday ? $birthday->format('Y-m-d') : null;
@@ -223,18 +231,16 @@ class NewsletterCustomer extends Resource
                 }
             }
 
-            if($subscribed && $customer['subscribed']){
-                array_push($returnCustomers, $customer);
-            }
+            $returnCustomers[] = $customer;
         }
 
-        return ($subscribed) ? ['data' => $returnCustomers] : ['data' => $customers];
-
+        return ['data' => $returnCustomers];
     }
 
     /**
      * @param string $email
      * @param array $params
+     *
      * @return mixed
      * @throws \Shopware\Components\Api\Exception\ValidationException
      * @throws \Shopware\Components\Api\Exception\NotFoundException
@@ -246,7 +252,10 @@ class NewsletterCustomer extends Resource
         $this->checkPrivilege('update');
 
         if (empty($email)) {
-            return Nl2go_ResponseHelper::generateErrorResponse('email-param is missing', Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER);
+            return Nl2go_ResponseHelper::generateErrorResponse(
+                'email-param is missing',
+                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
+            );
         }
         try {
             if ($params['Unsubscribe']) {
@@ -281,7 +290,10 @@ class NewsletterCustomer extends Resource
 
             return false;
         } catch (\Exception $e) {
-            return Nl2go_ResponseHelper::generateErrorResponse($e->getMessage(), Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER);
+            return Nl2go_ResponseHelper::generateErrorResponse(
+                $e->getMessage(),
+                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
+            );
         }
     }
 
@@ -289,29 +301,38 @@ class NewsletterCustomer extends Resource
     {
         try {
             $this->checkPrivilege('read');
-            $groups = Shopware()->Db()->fetchAll('SELECT groupkey as \'id\', description as \'name\', description as \'description\' FROM s_core_customergroups');
+            $groups = Shopware()->Db()->fetchAll(
+                'SELECT groupkey as \'id\', description as \'name\', description as \'description\' FROM s_core_customergroups'
+            );
 
             foreach ($groups as &$group) {
-                $group['count'] = Shopware()->Db()->fetchOne("SELECT count(*) as total FROM s_user WHERE customergroup = '{$group['id']}'");
+                $group['count'] = Shopware()->Db()->fetchOne(
+                    "SELECT count(*) as total FROM s_user WHERE customergroup = '{$group['id']}'"
+                );
             }
 
             $campaignGroups = Shopware()->Db()->fetchAll('SELECT * FROM s_campaigns_groups');
             foreach ($campaignGroups as $campaignGroup) {
-                $subsCount = Shopware()->Db()->fetchOne("SELECT count(*) as total
+                $subsCount = Shopware()->Db()->fetchOne(
+                    "SELECT count(*) as total
                     FROM s_campaigns_mailaddresses
-                    WHERE groupID = {$campaignGroup['id']} AND email NOT IN (SELECT email FROM s_user)");
+                    WHERE groupID = {$campaignGroup['id']} AND email NOT IN (SELECT email FROM s_user)"
+                );
 
                 $groups[] = array(
-                    'id'          => 'campaign_' . $campaignGroup['id'],
-                    'name'        => $campaignGroup['name'],
+                    'id' => 'campaign_' . $campaignGroup['id'],
+                    'name' => $campaignGroup['name'],
                     'description' => null,
-                    'count'       => $subsCount,
+                    'count' => $subsCount,
                 );
             }
 
             return $groups;
         } catch (\Exception $e) {
-            return Nl2go_ResponseHelper::generateErrorResponse($e->getMessage(), Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER);
+            return Nl2go_ResponseHelper::generateErrorResponse(
+                $e->getMessage(),
+                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
+            );
         }
     }
 
@@ -320,11 +341,16 @@ class NewsletterCustomer extends Resource
         try {
             $this->checkPrivilege('read');
             /** @var \Shopware\Models\Plugin\Plugin $plugin */
-            $plugin = Shopware()->Models()->getRepository('Shopware\Models\Plugin\Plugin')->findOneBy(array('name' => 'Newsletter2Go'));
+            $plugin = Shopware()->Models()->getRepository('Shopware\Models\Plugin\Plugin')->findOneBy(
+                array('name' => 'Newsletter2Go')
+            );
 
             return str_replace('.', '', $plugin->getVersion());
         } catch (\Exception $e) {
-            return Nl2go_ResponseHelper::generateErrorResponse($e->getMessage(), Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER);
+            return Nl2go_ResponseHelper::generateErrorResponse(
+                $e->getMessage(),
+                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
+            );
         }
     }
 
@@ -377,10 +403,10 @@ class NewsletterCustomer extends Resource
         }
 
         return array(
-            'id'          => $id,
-            'name'        => $name,
+            'id' => $id,
+            'name' => $name,
             'description' => $description ? $description : $name,
-            'type'        => $type,
+            'type' => $type,
         );
     }
 
@@ -392,10 +418,10 @@ class NewsletterCustomer extends Resource
     private function arrangeFields($fields)
     {
         $result = array(
-            'billing'  => array(),
+            'billing' => array(),
             'customer' => array('id'),
-            'order'    => array(),
-            'country'  => array(),
+            'order' => array(),
+            'country' => array(),
         );
         $useAddressModel = $this->useAddressModel();
 
