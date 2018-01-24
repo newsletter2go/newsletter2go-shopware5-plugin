@@ -1,16 +1,31 @@
 {extends file='parent:frontend/checkout/finish.tpl'}
 
-{block name='frontend_index_content' append}
-    <div id="yc-buy-items" style="display:none;">
-    {foreach name=basket from=$sBasket.content item=sBasketItem key=key}
+{block name="frontend_index_header_javascript" append}
+    <script type="text/javascript" id="n2g_script">
+        !function(e,t,n,c,r,a,i) { e.Newsletter2GoTrackingObject=r,e[r]=e[r]||function() { (e[r].q=e[r].q||[]).push(arguments) },
+        e[r].l=1*new Date,a=t.createElement(n),i=t.getElementsByTagName(n)[0],a.async=1,
+        a.src=c,i.parentNode.insertBefore(a,i) } (window,document,"script","//static-sandbox.newsletter2go.com/utils.js","n2g");
+
+        n2g('create', '{$companyId}');
+        n2g('ecommerce:addTransaction', {
+            'id': '{$sAddresses.billing.orderID}',
+            'affiliation': '{$sShopname}',
+            'revenue': '{$sAmount}',
+            'shipping': '{$sShippingcosts}',
+            'tax': '{$sAmountTax}'
+        } );
+        {foreach name=basket from=$sBasket.content item=sBasketItem key=key}
         {if $sBasketItem.articleID}
-            <div class="yc-item-summary">
-                <input type="hidden" name="ordernumber" value="{$sBasketItem.articleID}">
-                <input type="hidden" name="quantity" value="{$sBasketItem.quantity}">
-                <input type="hidden" name="price" value="{$sBasketItem.price}">
-                <input type="hidden" name="currency" value="{$Shop->getCurrency()->getCurrency()}">
-            </div>
+        n2g('ecommerce:addItem', {
+            'id': '{$sAddresses.billing.orderID}',
+            'name': '{$sBasketItem.articlename}',
+            'sku': '{$sBasketItem.ordernumber}',
+            'category': '{$helper->getArticleCategories($sBasketItem.articleID)}',
+            'price': '{$sBasketItem.price}',
+            'quantity': '{$sBasketItem.quantity}'
+        } );
         {/if}
-    {/foreach}
-    </div>
+        {/foreach}
+        n2g('ecommerce:send');
+    </script>
 {/block}

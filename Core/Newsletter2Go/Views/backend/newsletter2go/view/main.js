@@ -5,16 +5,16 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     alias: 'widget.newsletter2go-main-window',
     layout: 'fit',
     width: '30%',
-    height: '35%',
+    height: '45%',
     maximizable: false,
     minimizable: true,
     stateful: true,
-    resizable: false,
+    resizable: true,
     stateId: 'Newsletter2goId',
     border: false,
     snippets: {
         title: '{s name=config/title} Newsletter2Go {/s}',
-        cancel: '{s name=config/cancel}Cancel{/s}',
+        cancel: '{s name=config/cancel}Cancel{/s}'
     },
     initComponent: function () {
         var me = this;
