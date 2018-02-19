@@ -94,21 +94,20 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
     private function getOnlySubscribers($group, $emails = array())
     {
         $q = 'SELECT ma.email '
-            . 'FROM s_campaigns_mailaddresses ma '
-            . 'WHERE ma.email NOT IN (SELECT email FROM s_user) ';
+            . 'FROM s_campaigns_mailaddresses ma ';
 
         if ($group) {
-            $q .= " AND ma.groupID = $group ";
+            $q .= " WHERE ma.groupID = $group ";
         }
 
         if ($emails) {
-            $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
+            $where = strpos($q, 'WHERE') !== false ? 'AND' : 'WHERE';
+            $q .= $where . " ma.email IN ('" . implode("','", $emails) . "')";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
 
         foreach ($subscribers as $key => $value) {
-
             $sql = 'SELECT * '
                 . 'FROM s_campaigns_maildata '
                 . 'WHERE email = \'' . $value['email'] . '\' ';
@@ -116,14 +115,12 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
             $subscriberData = Shopware()->Db()->fetchRow($sql);
 
             if ($subscriberData != null) {
-
                 $subscribers[$key]['firstName'] = $subscriberData['firstname'];
                 $subscribers[$key]['lastName'] = $subscriberData['lastname'];
                 $subscribers[$key]['salutation'] = $subscriberData['salutation'];
                 $subscribers[$key]['street'] = $subscriberData['street'];
                 $subscribers[$key]['zipCode'] = $subscriberData['zipcode'];
                 $subscribers[$key]['city'] = $subscriberData['city'];
-
             }
         }
 
