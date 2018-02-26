@@ -303,15 +303,19 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     private function createMenu()
     {
-        $rootNode = $this->Menu()->findOneBy(array('label' => 'Marketing'));
-        $this->createMenuItem(array(
-            'label'      => 'Newsletter2Go',
-            'class'      => 'newsletter2go_image',
-            'active'     => 1,
-            'parent'     => $rootNode,
-            'controller' => 'Newsletter2go',
-            'action'     => 'index',
-        ));
+        $node = $this->Menu()->findOneBy(array('label' => 'Newsletter2Go'));
+
+        if(!isset($node)) {
+            $rootNode = $this->Menu()->findOneBy(array('label' => 'Marketing'));
+            $this->createMenuItem(array(
+                'label'      => 'Newsletter2Go',
+                'class'      => 'newsletter2go_image',
+                'active'     => 1,
+                'parent'     => $rootNode,
+                'controller' => 'Newsletter2go',
+                'action'     => 'index',
+            ));
+        }
     }
 
     /**
