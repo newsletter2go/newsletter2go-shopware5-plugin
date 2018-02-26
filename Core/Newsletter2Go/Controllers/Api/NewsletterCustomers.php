@@ -84,6 +84,8 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
         if (strpos($group, 'campaign_') !== false) {
             $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails);
+        } else if (strpos($group, 'stream_') !== false) {
+            $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields);
         } else {
             $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
         }
@@ -125,6 +127,21 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         }
 
         return array('data' => $subscribers);
+    }
+
+    /**
+     * Get only customers for specific stream
+     *
+     * @param $group
+     * @param array $emails
+     * @param array $fields
+     * @return array
+     */
+    private function getOnlyStreamCustomers($group, $emails = array(), $fields = array())
+    {
+        $result = $this->resource->getStreamList($group, $emails, $fields);
+        
+        return $result;
     }
 
 }
