@@ -321,7 +321,7 @@ class NewsletterCustomer extends Resource
                 $subsCount = Shopware()->Db()->fetchOne(
                     "SELECT count(*) as total
                     FROM s_campaigns_mailaddresses
-                    WHERE groupID = {$campaignGroup['id']} AND email NOT IN (SELECT email FROM s_user)");
+                    WHERE groupID = {$campaignGroup['id']}");
 
                 $groups[] = array(
                     'id' => 'campaign_' . $campaignGroup['id'],
