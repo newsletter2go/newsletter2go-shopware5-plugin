@@ -23,8 +23,8 @@ class Nl2go_ResponseHelper
     static function generateErrorResponse($message, $errorCode, $context = null)
     {
         $res = array(
-            'success'   => false,
-            'message'   => $message,
+            'success' => false,
+            'message' => $message,
             'errorcode' => $errorCode,
         );
         if ($context != null) {
@@ -144,7 +144,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $country = array();
+        $country = [];
         $countries = Shopware()->Db()->fetchAll('SELECT id, countryname FROM s_core_countries');
         foreach ($countries as $c) {
             $country[$c['id']] = $c['countryname'];
@@ -159,7 +159,7 @@ class NewsletterCustomer extends Resource
             $subscribers = array_fill_keys($emails, true);
         }
 
-        $state = array();
+        $state = [];
         $states = Shopware()->Db()->fetchAll('SELECT id, name FROM s_core_countries_states');
         foreach ($states as $s) {
             $state[$s['id']] = $s['name'];
@@ -175,10 +175,8 @@ class NewsletterCustomer extends Resource
                 unset($customer['billing']['countryId']);
             }
 
-            if (isset($customer['billing']['stateId'])) {
-                $customer['stateId'] = $state[$customer['billing']['stateId']];
-                unset($customer['billing']['stateId']);
-            }
+            $customer['state'] = empty($customer['billing']['stateId']) ? '' : $state[$customer['billing']['stateId']];
+            unset($customer['billing']['stateId']);
 
             foreach ($customer['billing'] as &$defaultBillingAddress) {
                 if (is_null($defaultBillingAddress)) {
@@ -322,7 +320,8 @@ class NewsletterCustomer extends Resource
             foreach ($campaignGroups as $campaignGroup) {
                 $subsCount = Shopware()->Db()->fetchOne(
                     "SELECT count(*) as total
-                    WHERE groupID = {$campaignGroup['id']}");
+                    FROM s_campaigns_mailaddresses
+                    WHERE groupID = {$campaignGroup['id']} AND email NOT IN (SELECT email FROM s_user)");
 
                 $groups[] = array(
                     'id' => 'campaign_' . $campaignGroup['id'],
@@ -408,10 +407,10 @@ class NewsletterCustomer extends Resource
         }
 
         return array(
-            'id'          => $id,
-            'name'        => $name,
+            'id' => $id,
+            'name' => $name,
             'description' => $description ? $description : $name,
-            'type'        => $type,
+            'type' => $type,
         );
     }
 
@@ -423,10 +422,10 @@ class NewsletterCustomer extends Resource
     private function arrangeFields($fields)
     {
         $result = array(
-            'billing'  => array(),
+            'billing' => array(),
             'customer' => array('id'),
-            'order'    => array(),
-            'country'  => array(),
+            'order' => array(),
+            'country' => array(),
         );
         $useAddressModel = $this->useAddressModel();
 
