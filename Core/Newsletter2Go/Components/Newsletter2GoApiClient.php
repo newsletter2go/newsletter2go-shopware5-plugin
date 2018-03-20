@@ -51,7 +51,7 @@ class Newsletter2GoApiClient
      *
      * @return string
      */
-    function getApiKey()
+    public function getApiKey()
     {
         return $this->apiKey;
     }
@@ -61,7 +61,7 @@ class Newsletter2GoApiClient
      *
      * @param string $apiKey
      */
-    function setApiKey($apiKey)
+    public function setApiKey($apiKey)
     {
         $this->apiKey = $apiKey;
     }

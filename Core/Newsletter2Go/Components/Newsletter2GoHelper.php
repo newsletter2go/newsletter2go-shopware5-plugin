@@ -2,6 +2,8 @@
 
 namespace Newsletter2Go\Components;
 
+use Shopware\Models\Category\Category;
+
 class Newsletter2GoHelper
 {
     /**
@@ -31,13 +33,14 @@ class Newsletter2GoHelper
         $categoryName = '';
         $builder = $em->createQueryBuilder();
         $builder->select(array('categories'))
-            ->from('Shopware\Models\Category\Category', 'categories', 'categories.id')
+            ->from(Category::class, 'categories', 'categories.id')
             ->innerJoin('categories.articles', 'articles')
             ->where('articles.id = :articleId')
             ->setParameter('articleId', $articleId);
 
         $query = $builder->getQuery();
         $paginator = $em->createPaginator($query);
+        /** @var Category[] $categories */
         $categories = $paginator->getIterator()->getArrayCopy();
         foreach ($categories as $category) {
             $categoryName = $category->getName();

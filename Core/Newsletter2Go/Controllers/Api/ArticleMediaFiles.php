@@ -5,7 +5,7 @@ class Shopware_Controllers_Api_ArticleMediaFiles extends Shopware_Controllers_Ap
     /**
      * @var Shopware\Components\Api\Resource\ArticleMediaFiles
      */
-    protected $resource = null;
+    protected $resource;
 
     public function init()
     {

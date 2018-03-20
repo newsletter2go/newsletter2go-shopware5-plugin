@@ -2,7 +2,11 @@
 
 namespace Shopware\Components\Api\Resource;
 
+use Shopware\Models\CustomerStream\Mapping;
 use Shopware\Models\Newsletter\Address;
+use Doctrine\ORM\Query\Expr;
+use Shopware\Models\Newsletter\Group;
+use Shopware\Models\Plugin\Plugin;
 
 class Nl2go_ResponseHelper
 {
@@ -85,6 +89,8 @@ class NewsletterCustomer extends Resource
      * @param int $subShopId
      *
      * @return array
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
      */
     public function getList(
         $subscribed = false,
@@ -150,10 +156,10 @@ class NewsletterCustomer extends Resource
             $country[$c['id']] = $c['countryname'];
         }
 
-        $hasId = in_array('id', $fields);
-        $hasSubs = in_array('subscribed', $fields);
-        $hasSalutation = in_array('billing.salutation', $fields);
-        $hasBirthday = in_array('billing.birthday', $fields) || in_array('birthday', $fields);
+        $hasId = in_array('id', $fields, true);
+        $hasSubs = in_array('subscribed', $fields, true);
+        $hasSalutation = in_array('billing.salutation', $fields, true);
+        $hasBirthday = in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true);
         if ($hasSubs) {
             $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
             $subscribers = array_fill_keys($emails, true);
@@ -179,7 +185,7 @@ class NewsletterCustomer extends Resource
             unset($customer['billing']['stateId']);
 
             foreach ($customer['billing'] as &$defaultBillingAddress) {
-                if (is_null($defaultBillingAddress)) {
+                if ($defaultBillingAddress === null) {
                     $defaultBillingAddress = '';
                 }
             }
@@ -247,10 +253,8 @@ class NewsletterCustomer extends Resource
      * @param array $params
      *
      * @return mixed
-     * @throws \Shopware\Components\Api\Exception\ValidationException
-     * @throws \Shopware\Components\Api\Exception\NotFoundException
-     * @throws \Shopware\Components\Api\Exception\ParameterMissingException
-     * @throws \Shopware\Components\Api\Exception\CustomValidationException
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
      */
     public function update($email, array $params)
     {
@@ -273,7 +277,7 @@ class NewsletterCustomer extends Resource
             }
 
             if ($params['Subscribe']) {
-                $groups = Shopware()->Models()->getRepository('Shopware\Models\Newsletter\Group')->findAll();
+                $groups = Shopware()->Models()->getRepository(Group::class)->findAll();
                 if (empty($groups) === false && is_array($groups)) {
                     $group = reset($groups);
                     $groupId = $group->getId();
@@ -344,8 +348,8 @@ class NewsletterCustomer extends Resource
     {
         try {
             $this->checkPrivilege('read');
-            /** @var \Shopware\Models\Plugin\Plugin $plugin */
-            $plugin = Shopware()->Models()->getRepository('Shopware\Models\Plugin\Plugin')->findOneBy(
+            /** @var Plugin $plugin */
+            $plugin = Shopware()->Models()->getRepository(Plugin::class)->findOneBy(
                 array('name' => 'Newsletter2Go')
             );
 
@@ -409,7 +413,7 @@ class NewsletterCustomer extends Resource
         return array(
             'id' => $id,
             'name' => $name,
-            'description' => $description ? $description : $name,
+            'description' => $description ?: $name,
             'type' => $type,
         );
     }

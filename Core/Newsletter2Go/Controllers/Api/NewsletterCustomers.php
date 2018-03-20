@@ -5,7 +5,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
     /**
      * @var Shopware\Components\Api\Resource\NewsletterCustomer
      */
-    protected $resource = null;
+    protected $resource;
 
     public function init()
     {
@@ -59,13 +59,6 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
     private function getCustomers()
     {
-
-        $devIPs = array("141.16.127.66", "84.159.203.99");
-        if (in_array($_SERVER['REMOTE_ADDR'], $devIPs)) {
-            error_reporting (E_ALL | E_STRICT);
-            ini_set('display_errors',1);
-        }
-
         $subscribed = $this->Request()->getParam('subscribed', false);
         $offset = $this->Request()->getParam('start', false);
         $limit = $this->Request()->getParam('limit', false);
@@ -91,6 +84,12 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         return $result;
     }
 
+    /**
+     * @param string $group
+     * @param string[] $emails
+     *
+     * @return array
+     */
     private function getOnlySubscribers($group, $emails = array())
     {
         $q = 'SELECT ma.email '
@@ -126,5 +125,4 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
         return array('data' => $subscribers);
     }
-
 }
