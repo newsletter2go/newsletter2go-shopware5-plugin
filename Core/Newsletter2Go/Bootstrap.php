@@ -8,7 +8,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.1.11';
+    const VERSION = '4.1.18';
 
     /**
      * Capabilities for plugin.
@@ -41,11 +41,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     public function getVersion()
     {
-<<<<<<< Updated upstream
-        return '4.1.18';
-=======
         return static::VERSION;
->>>>>>> Stashed changes
     }
 
     /**
