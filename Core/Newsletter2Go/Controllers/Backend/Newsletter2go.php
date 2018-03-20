@@ -4,25 +4,29 @@ use Shopware\Models\Newsletter2Go\Newsletter2Go;
 
 class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Backend_ExtJs
 {
-
     /**
      *  @var \Shopware\Components\Model\ModelManager
      */
     private $em;
 
     /**
-     *
      * @param Enlight_Controller_Request_Request $request
      * @param Enlight_Controller_Response_Response $response
+     *
+     * @throws \Exception
      */
     public function __construct(Enlight_Controller_Request_Request $request, Enlight_Controller_Response_Response $response)
     {
         parent::__construct($request, $response);
+
         $this->em = Shopware()->Models();
     }
 
     /**
-     * default index action
+     * Default index action
+     *
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function indexAction()
     {
@@ -39,8 +43,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     public function getDataAction()
     {
         $data = array();
-        /* @var $element Newsletter2Go */
-        $elements = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findAll();
+        /* @var Newsletter2Go[] $elements */
+        $elements = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)->findAll();
         foreach ($elements as $element) {
             $data[$element->getName()] = $element->getValue();
         }
@@ -54,6 +58,9 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
 
     /**
      * Resets API settings
+     *
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function resetApiUserAction()
     {
@@ -64,6 +71,9 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
 
     /**
      * Saves conversion tracking in database
+     *
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function setTrackingAction()
     {
@@ -72,7 +82,6 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $this->saveConfigParam('trackOrders', $trackOrders);
         $this->em->flush();
         $this->getDataAction();
-
     }
 
     /**
@@ -87,15 +96,18 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $charactersLength = strlen($characters);
         $randomString = '';
         for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[rand(0, $charactersLength - 1)];
+            $randomString .= $characters[mt_rand(0, $charactersLength - 1)];
         }
 
         return $randomString;
     }
 
+    /**
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
     private function createApiUser()
     {
-        /* @var $apiUser Shopware\Models\User\User */
         $apiUser = new \Shopware\Models\User\User();
 
         $apiUser->setName('newsletter2goApiUser');
@@ -106,7 +118,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         }
 
         /** @var Shopware\Models\User\Role $adminRole */
-        $adminRole = $this->em->getRepository('Shopware\Models\User\Role')->findOneBy(array('admin' => 1));
+        $adminRole = $this->em->getRepository(\Shopware\Models\User\Role::class)->findOneBy(array('admin' => 1));
         $apiUser->setLocaleId(0);
         $apiUser->setPassword(md5(time()));
         $apiUser->setRole($adminRole);
@@ -118,11 +130,15 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $this->em->flush();
     }
 
+    /**
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
     private function deleteApiUser()
     {
-        $user = $this->em->getRepository('Shopware\Models\User\User')->findOneBy(array('username' => 'newsletter2goApiUser'));
-        $configUsername = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(array('name' => 'apiUsername'));
-        $configApiKey = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(array('name' => 'apiKey'));
+        $user = $this->em->getRepository(\Shopware\Models\User\User::class)->findOneBy(array('username' => 'newsletter2goApiUser'));
+        $configUsername = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)->findOneBy(array('name' => 'apiUsername'));
+        $configApiKey = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)->findOneBy(array('name' => 'apiKey'));
 
         if ($user) {
             $this->em->remove($user);
@@ -149,7 +165,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      */
     private function getConfigParam($name, $default = null)
     {
-        $value = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')
+        $value = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)
                 ->findOneBy(array('name' => $name));
 
         return $value ? $value->getValue() : $default;
@@ -157,13 +173,16 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
 
     /**
      * Saves new value to newsletter2go table or updates existing one
-     * 
+     *
      * @param string $name
      * @param string $value
+     *
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     private function saveConfigParam($name, $value)
     {
-        $element = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')
+        $element = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)
                 ->findOneBy(array('name' => $name));
         if (!$element) {
             $element = new Newsletter2Go();

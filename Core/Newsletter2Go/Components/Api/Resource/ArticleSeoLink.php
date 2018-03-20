@@ -3,6 +3,7 @@
 namespace Shopware\Components\Api\Resource;
 
 use Newsletter2Go\Components\Newsletter2GoHelper;
+use Shopware\Components\Routing\Router;
 
 /**
  * Class ArticleSeoLink
@@ -16,11 +17,16 @@ class ArticleSeoLink extends Resource
      *
      * @param $id
      * @param $shopId
+     *
      * @return array
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
      */
     public function getArticleSeoLink($id, $shopId)
     {
         $this->checkPrivilege('read');
+
+        /** @var Router $router */
         $router = Shopware()->Container()->get('router');
         $context = $router->getContext();
 
@@ -30,7 +36,7 @@ class ArticleSeoLink extends Resource
             'sArticle' => $id,
         );
 
-        if ($shopId == 0) {
+        if (!$shopId) {
             $helper = new Newsletter2GoHelper();
             $shopId = $helper->getDefaultShopId();
         }

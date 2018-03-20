@@ -81,15 +81,9 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 var result = Ext.decode(response.responseText),
                     button = Ext.ComponentQuery.query('#nl2goTrackingButton'),
                     label = Ext.ComponentQuery.query('#nl2goTrackingLabel'),
-                    i;
-
-                if (result.data.trackOrders) {
-                    labelText = ' Enabled';
-                    buttonText = 'Disable Tracking';
-                } else {
-                    labelText = ' Disabled';
-                    buttonText = 'Enable Tracking';
-                }
+                    i,
+                    labelText = result.data.trackOrders ? ' Enabled' : ' Disabled',
+                    buttonText = result.data.trackOrders ? 'Disable Tracking' : 'Enable Tracking';
 
                 for (i = 0; i < button.length; i++) {
                     button[i].setText(buttonText);

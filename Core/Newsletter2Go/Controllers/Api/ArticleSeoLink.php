@@ -5,7 +5,7 @@ class Shopware_Controllers_Api_ArticleSeoLink extends Shopware_Controllers_Api_R
     /**
      * @var Shopware\Components\Api\Resource\ArticleSeoLink
      */
-    protected $resource = null;
+    protected $resource;
 
     public function init()
     {
@@ -16,13 +16,15 @@ class Shopware_Controllers_Api_ArticleSeoLink extends Shopware_Controllers_Api_R
      * Get list of media files for specific article
      *
      * GET /api/ArticleSeoLink/
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
      */
     public function indexAction()
     {
         $id = $this->Request()->getParam('identifier');
         $shopId = $this->Request()->getParam('shopId');
 
-        if (isset($id) && isset($shopId)) {
+        if (isset($id, $shopId)) {
             $data = $this->resource->getArticleSeoLink($id, $shopId);
             $result = array(
                 'success' => true,

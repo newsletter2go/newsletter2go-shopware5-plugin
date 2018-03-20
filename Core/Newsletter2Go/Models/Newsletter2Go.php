@@ -2,9 +2,7 @@
 
 namespace Shopware\Models\Newsletter2Go;
 
-use Shopware\Components\Model\ModelEntity,
-    Doctrine\ORM\Mapping as ORM,
-    Symfony\Component\Validator\Constraints as Assert;
+use Shopware\Components\Model\ModelEntity;
 
 /**
  * Shopware Newsletter2Go Model
@@ -14,7 +12,6 @@ use Shopware\Components\Model\ModelEntity,
  */
 class Newsletter2Go extends ModelEntity
 {
-
     /**
      * @var integer $id
      *
@@ -84,7 +81,8 @@ class Newsletter2Go extends ModelEntity
      * Set value
      *
      * @param mixed $value
-     * @return Value
+     *
+     * @return $this
      */
     public function setValue($value)
     {
@@ -101,5 +99,4 @@ class Newsletter2Go extends ModelEntity
     {
         return $this->value;
     }
-
 }
