@@ -113,7 +113,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
             $subscriberData = Shopware()->Db()->fetchRow($sql);
 
-            if ($subscriberData != null) {
+            if ($subscriberData) {
                 $subscribers[$key]['firstName'] = $subscriberData['firstname'];
                 $subscribers[$key]['lastName'] = $subscriberData['lastname'];
                 $subscribers[$key]['salutation'] = $subscriberData['salutation'];
