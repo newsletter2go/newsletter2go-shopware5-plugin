@@ -3,6 +3,8 @@
 namespace Shopware\Models\Newsletter2Go;
 
 use Shopware\Components\Model\ModelEntity;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Shopware Newsletter2Go Model
