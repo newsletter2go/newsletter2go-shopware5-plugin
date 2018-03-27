@@ -3,7 +3,7 @@
 class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_Api_Rest
 {
     /**
-     * @var Shopware\Components\Api\Resource\NewsletterCustomer
+     * @var \Shopware\Components\Api\Resource\NewsletterCustomer
      */
     protected $resource;
 
@@ -57,6 +57,11 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         $this->View()->assign(array('success' => true));
     }
 
+    /**
+     * @return array
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
+     */
     private function getCustomers()
     {
         $subscribed = $this->Request()->getParam('subscribed', false);
@@ -92,7 +97,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlySubscribers($group, $emails = array())
+    private function getOnlySubscribers($group, array $emails = [])
     {
         $q = 'SELECT ma.email '
             . 'FROM s_campaigns_mailaddresses ma '
@@ -131,16 +136,15 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
     /**
      * Get only customers for specific stream
      *
-     * @param $group
-     * @param array $emails
-     * @param array $fields
+     * @param string $group
+     * @param string[] $emails
+     * @param string[] $fields
+     *
      * @return array
      */
-    private function getOnlyStreamCustomers($group, $emails = array(), $fields = array())
+    private function getOnlyStreamCustomers($group, array $emails = [], array $fields = [])
     {
-        $result = $this->resource->getStreamList($group, $emails, $fields);
-
-        return $result;
+        return $this->resource->getStreamList($group, $emails, $fields);
     }
 
 }

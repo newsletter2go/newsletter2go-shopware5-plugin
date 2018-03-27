@@ -272,36 +272,37 @@ class NewsletterCustomer extends Resource
 
     public function getCustomerFields()
     {
-        $fields = array();
-        $fields[] = $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer');
-        $fields[] = $this->createField('email', 'E-mail address');
-        $fields[] = $this->createField('active', 'Active', 'Is customer active', 'Boolean');
-        $fields[] = $this->createField('accountMode', 'Account mode', '', 'Integer');
-        $fields[] = $this->createField('confirmationKey', 'Confirmation key', '', 'String');
-        $fields[] = $this->createField('firstLogin', 'First login', '', 'Date');
-        $fields[] = $this->createField('lastLogin', 'Last login', '', 'Date');
-        $fields[] = $this->createField('groupKey', 'Customer group');
-        $fields[] = $this->createField('languageId', 'Language', '', 'Integer');
-        $fields[] = $this->createField('paymentPreset', 'Payment preset', '', 'Integer');
-        $fields[] = $this->createField('shopId', 'Subshop Id.', '', 'Integer');
-        $fields[] = $this->createField('paymentId', 'Price group Id.', '', 'Integer');
-        $fields[] = $this->createField('internalComment', 'Internal Comment');
-        $fields[] = $this->createField('referer');
-        $fields[] = $this->createField('state');
-        $fields[] = $this->createField('country');
-        $fields[] = $this->createField('subscribed', '', '', 'Boolean');
-        $fields[] = $this->createField('failedLogins', 'Failed logins', '', 'Integer');
-        $fields[] = $this->createField('billing.company', 'Company');
-        $fields[] = $this->createField('billing.department', 'Department');
-        $fields[] = $this->createField('billing.salutation', 'Salutation');
-        $fields[] = $this->createField('billing.firstName', 'Firstname');
-        $fields[] = $this->createField('billing.lastName', 'Lastname');
-        $fields[] = $this->createField('billing.street', 'Street');
-        $fields[] = $this->createField('billing.zipCode', 'Zipcode');
-        $fields[] = $this->createField('billing.city', 'City');
-        $fields[] = $this->createField('billing.phone', 'Phone');
-        $fields[] = $this->createField('billing.title', 'Title');
-        $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
+        $fields = [
+            $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer'),
+            $this->createField('email', 'E-mail address'),
+            $this->createField('active', 'Active', 'Is customer active', 'Boolean'),
+            $this->createField('accountMode', 'Account mode', '', 'Integer'),
+            $this->createField('confirmationKey', 'Confirmation key', '', 'String'),
+            $this->createField('firstLogin', 'First login', '', 'Date'),
+            $this->createField('lastLogin', 'Last login', '', 'Date'),
+            $this->createField('groupKey', 'Customer group'),
+            $this->createField('languageId', 'Language', '', 'Integer'),
+            $this->createField('paymentPreset', 'Payment preset', '', 'Integer'),
+            $this->createField('shopId', 'Subshop Id.', '', 'Integer'),
+            $this->createField('paymentId', 'Price group Id.', '', 'Integer'),
+            $this->createField('internalComment', 'Internal Comment'),
+            $this->createField('referer'),
+            $this->createField('state'),
+            $this->createField('country'),
+            $this->createField('subscribed', '', '', 'Boolean'),
+            $this->createField('failedLogins', 'Failed logins', '', 'Integer'),
+            $this->createField('billing.company', 'Company'),
+            $this->createField('billing.department', 'Department'),
+            $this->createField('billing.salutation', 'Salutation'),
+            $this->createField('billing.firstName', 'Firstname'),
+            $this->createField('billing.lastName', 'Lastname'),
+            $this->createField('billing.street', 'Street'),
+            $this->createField('billing.zipCode', 'Zipcode'),
+            $this->createField('billing.city', 'City'),
+            $this->createField('billing.phone', 'Phone'),
+            $this->createField('billing.title', 'Title'),
+            $this->createField('birthday', 'Birthday', '', 'Date'),
+        ];
 
         if (\Shopware::VERSION >= '5.2') {
             $fields[] = $this->createField('number', 'Customernumber');
@@ -363,10 +364,11 @@ class NewsletterCustomer extends Resource
     /**
      * Fix customer information
      *
-     * @param $customers
+     * @param array $customers
      * @param $billingAddressField
-     * @param $fields
-     * @return mixed
+     * @param string[] $fields
+     *
+     * @return array
      */
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
@@ -395,10 +397,11 @@ class NewsletterCustomer extends Resource
             unset($customer['billing']['stateId']);
 
             foreach ($customer['billing'] as &$defaultBillingAddress) {
-                if (is_null($defaultBillingAddress)) {
+                if ($defaultBillingAddress === null) {
                     $defaultBillingAddress = '';
                 }
             }
+            unset($defaultBillingAddress);
 
             if ($hasConditions['Subs']) {
                 $customer['subscribed'] = isset($subscribers[$customer['email']]);
@@ -451,36 +454,42 @@ class NewsletterCustomer extends Resource
     private function getHasConditions($fields)
     {
         $hasConditions = array();
-        $hasConditions['Id'] = in_array('id', $fields);
-        $hasConditions['Subs'] = in_array('subscribed', $fields);
-        $hasConditions['Salutation'] = in_array('billing.salutation', $fields);
-        $hasConditions['Birthday'] = in_array('billing.birthday', $fields) || in_array('birthday', $fields);
+        $hasConditions['Id'] = in_array('id', $fields, true);
+        $hasConditions['Subs'] = in_array('subscribed', $fields, true);
+        $hasConditions['Salutation'] = in_array('billing.salutation', $fields, true);
+        $hasConditions['Birthday'] = in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true);
 
         return $hasConditions;
     }
 
+    /**
+     * @return array
+     */
     private function getCountry()
     {
-        $country = array();
-        $countries = Shopware()->Db()->fetchAll('SELECT countryname FROM s_core_countries');
-        foreach ($countries as $c) {
-            $country[$c['id']] = $c['countryname'];
-        }
+        $countries = Shopware()->Db()->fetchAll('SELECT id, countryname FROM s_core_countries');
 
-        return $country;
+        return array_column($countries, 'countryname', 'id');
     }
 
+    /**
+     * @return array
+     */
     private function getState()
     {
-        $state = array();
-        $states = Shopware()->Db()->fetchAll('SELECT name FROM s_core_countries_states');
-        foreach ($states as $s) {
-            $state[$s['id']] = $s['name'];
-        }
+        $states = Shopware()->Db()->fetchAll('SELECT id, name FROM s_core_countries_states');
 
-        return $state;
+        return array_column($states, 'name', 'id');
     }
 
+    /**
+     * @param string $id
+     * @param string $name
+     * @param string $description
+     * @param string $type
+     *
+     * @return array
+     */
     private function createField($id, $name = '', $description = '', $type = 'String')
     {
         if ($name === '') {
