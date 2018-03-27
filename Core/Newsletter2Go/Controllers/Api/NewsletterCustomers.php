@@ -5,7 +5,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
     /**
      * @var Shopware\Components\Api\Resource\NewsletterCustomer
      */
-    protected $resource = null;
+    protected $resource;
 
     public function init()
     {
@@ -59,13 +59,6 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
     private function getCustomers()
     {
-
-        $devIPs = array("141.16.127.66", "84.159.203.99");
-        if (in_array($_SERVER['REMOTE_ADDR'], $devIPs)) {
-            error_reporting (E_ALL | E_STRICT);
-            ini_set('display_errors',1);
-        }
-
         $subscribed = $this->Request()->getParam('subscribed', false);
         $offset = $this->Request()->getParam('start', false);
         $limit = $this->Request()->getParam('limit', false);
@@ -84,6 +77,8 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
         if (strpos($group, 'campaign_') !== false) {
             $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails);
+        } else if (strpos($group, 'stream_') !== false) {
+            $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields);
         } else {
             $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
         }
@@ -91,18 +86,24 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         return $result;
     }
 
+    /**
+     * @param string $group
+     * @param string[] $emails
+     *
+     * @return array
+     */
     private function getOnlySubscribers($group, $emails = array())
     {
         $q = 'SELECT ma.email '
-            . 'FROM s_campaigns_mailaddresses ma ';
+            . 'FROM s_campaigns_mailaddresses ma '
+            . 'WHERE ma.email NOT IN (SELECT email FROM s_user) ';
 
         if ($group) {
-            $q .= " WHERE ma.groupID = $group ";
+            $q .= " AND ma.groupID = $group ";
         }
 
         if ($emails) {
-            $where = strpos($q, 'WHERE') !== false ? 'AND' : 'WHERE';
-            $q .= $where . " ma.email IN ('" . implode("','", $emails) . "')";
+            $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
@@ -114,7 +115,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
             $subscriberData = Shopware()->Db()->fetchRow($sql);
 
-            if ($subscriberData != null) {
+            if ($subscriberData) {
                 $subscribers[$key]['firstName'] = $subscriberData['firstname'];
                 $subscribers[$key]['lastName'] = $subscriberData['lastname'];
                 $subscribers[$key]['salutation'] = $subscriberData['salutation'];
@@ -125,6 +126,21 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         }
 
         return array('data' => $subscribers);
+    }
+
+    /**
+     * Get only customers for specific stream
+     *
+     * @param $group
+     * @param array $emails
+     * @param array $fields
+     * @return array
+     */
+    private function getOnlyStreamCustomers($group, $emails = array(), $fields = array())
+    {
+        $result = $this->resource->getStreamList($group, $emails, $fields);
+
+        return $result;
     }
 
 }
