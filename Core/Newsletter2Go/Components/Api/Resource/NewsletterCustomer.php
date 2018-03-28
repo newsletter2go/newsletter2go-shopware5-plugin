@@ -10,7 +10,6 @@ use Shopware\Models\Plugin\Plugin;
 
 class Nl2go_ResponseHelper
 {
-
     /**
      * err-number, that should be pulled, whenever credentials are missing
      */
@@ -24,27 +23,26 @@ class Nl2go_ResponseHelper
      */
     const ERRNO_PLUGIN_OTHER = 'int-1-600';
 
-    static function generateErrorResponse($message, $errorCode, $context = null)
+    public static function generateErrorResponse($message, $errorCode, $context = null)
     {
-        $res = array(
+        $res = [
             'success' => false,
             'message' => $message,
             'errorcode' => $errorCode,
-        );
-        if ($context != null) {
+        ];
+        if ($context) {
             $res['context'] = $context;
         }
 
         return $res;
     }
 
-    static function generateSuccessResponse($data = array())
+    public static function generateSuccessResponse(array $data = [])
     {
-        $res = array('success' => true, 'message' => 'OK');
+        $res = ['success' => true, 'message' => 'OK'];
 
         return array_merge($res, $data);
     }
-
 }
 
 /**
@@ -57,26 +55,26 @@ class NewsletterCustomer extends Resource
      * Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
      * @var array<string, string>
      */
-    private $addressModelColumnMap = [
+    private static $addressModelColumnMap = [
         'firstName' => 'firstname',
         'lastName' => 'lastname',
         'zipCode' => 'zipcode',
     ];
 
     /**
-     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Customer\Repository
+     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Customer\Customer
      */
     public function getRepositoryCustomer()
     {
-        return $this->getManager()->getRepository('Shopware\Models\Customer\Customer');
+        return $this->getManager()->getRepository(\Shopware\Models\Customer\Customer::class);
     }
 
     /**
-     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Newsletter\Repository
+     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Newsletter\Address
      */
     public function getRepositoryAddress()
     {
-        return $this->getManager()->getRepository('Shopware\Models\Newsletter\Address');
+        return $this->getManager()->getRepository(\Shopware\Models\Newsletter\Address::class);
     }
 
     /**
@@ -84,8 +82,8 @@ class NewsletterCustomer extends Resource
      * @param bool $offset
      * @param bool $limit
      * @param string $group
-     * @param array $fields
-     * @param array $emails
+     * @param string[] $fields
+     * @param string[] $emails
      * @param int $subShopId
      *
      * @return array
@@ -97,8 +95,8 @@ class NewsletterCustomer extends Resource
         $offset = false,
         $limit = false,
         $group = '',
-        $fields = [],
-        $emails = [],
+        array $fields = [],
+        array $emails = [],
         $subShopId = 0
     ) {
         $this->checkPrivilege('read');
@@ -226,6 +224,7 @@ class NewsletterCustomer extends Resource
                     "SELECT count(*) as total FROM s_user WHERE customergroup = '{$group['id']}'"
                 );
             }
+            unset($group);
 
             $campaignGroups = Shopware()->Db()->fetchAll('SELECT * FROM s_campaigns_groups');
             foreach ($campaignGroups as $campaignGroup) {
@@ -317,11 +316,12 @@ class NewsletterCustomer extends Resource
      * Get stream customers list
      *
      * @param $group
-     * @param array $emails
-     * @param array $fields
+     * @param string[] $emails
+     * @param string[] $fields
+     *
      * @return array
      */
-    public function getStreamList($group, $emails = array(), $fields = array())
+    public function getStreamList($group, array $emails = [], array $fields = [])
     {
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
@@ -330,7 +330,7 @@ class NewsletterCustomer extends Resource
 
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
-            ->innerJoin('Shopware\Models\CustomerStream\Mapping', 'mapping', Expr\Join::INNER_JOIN, 'mapping.customerId = customer.id')
+            ->innerJoin(Mapping::class, 'mapping', Expr\Join::INNER_JOIN, 'mapping.customerId = customer.id')
             ->where('customer.active = true');
 
         if ($group) {
@@ -372,94 +372,83 @@ class NewsletterCustomer extends Resource
      */
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
-        $hasConditions = $this->getHasConditions($fields);
-        if ($hasConditions['Subs']) {
+        $subscribers = null;
+        if (in_array('subscribed', $fields, true)) {
             $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = array();
-            foreach ($emails as $e) {
-                $subscribers[$e['email']] = true;
-            }
+            $subscribers = array_fill_keys($emails, true);
         }
 
         $country = $this->getCountry();
         $state = $this->getState();
 
         foreach ($customers as &$customer) {
-            $customer['billing'] = $customer[$billingAddressField];
+            /** @var array $customerBilling */
+            $customerBilling = $customer[$billingAddressField];
             unset($customer[$billingAddressField]);
 
-            if (isset($customer['billing']['countryId'])) {
-                $customer['country'] = $country[$customer['billing']['countryId']];
-                unset($customer['billing']['countryId']);
+            if (isset($customerBilling['countryId'])) {
+                $customer['country'] = $country[$customerBilling['countryId']];
+                unset($customerBilling['countryId']);
             }
 
-            $customer['state'] = empty($customer['billing']['stateId']) ? '' : $state[$customer['billing']['stateId']];
-            unset($customer['billing']['stateId']);
+            $customer['state'] = empty($customerBilling['stateId']) ? '' : $state[$customerBilling['stateId']];
+            unset($customerBilling['stateId']);
 
-            foreach ($customer['billing'] as &$defaultBillingAddress) {
+            foreach ($customerBilling as &$defaultBillingAddress) {
                 if ($defaultBillingAddress === null) {
                     $defaultBillingAddress = '';
                 }
             }
             unset($defaultBillingAddress);
 
-            if ($hasConditions['Subs']) {
+            if (is_array($subscribers)) {
                 $customer['subscribed'] = isset($subscribers[$customer['email']]);
             }
 
-            if ($hasConditions['Salutation']) {
-                $salutation = strtolower($customer['billing']['salutation']);
+            if (in_array('billing.salutation', $fields, true)) {
+                $salutation = strtolower($customerBilling['salutation']);
 
                 if ($salutation === 'mr') {
-                    $customer['billing']['salutation'] = 'm';
+                    $customerBilling['salutation'] = 'm';
                 } else if ($salutation === 'ms') {
-                    $customer['billing']['salutation'] = 'f';
+                    $customerBilling['salutation'] = 'f';
                 }
             }
 
-            if ($hasConditions['Birthday']) {
+            if (in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true)) {
                 /** @var $birthday \DateTime */
                 $birthday = null;
                 if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
                     $birthday = $customer['birthday'];
-                } else if ($customer['billing']['birthday'] !== null) {
-                    $birthday = $customer['billing']['birthday'];
+                } else if ($customerBilling['birthday'] !== null) {
+                    $birthday = $customerBilling['birthday'];
                 }
 
                 $customer['birthday'] = $birthday ? $birthday->format('Y-m-d') : null;
-                unset($customer['billing']['birthday']);
+                unset($customerBilling['birthday']);
             }
 
             if (!empty($arrangedFields['billing'])) {
-                unset($customer['billing']['id']);
+                unset($customerBilling['id']);
             }
 
-            if (!$hasConditions['Id']) {
+            if (!in_array('id', $fields, true)) {
                 unset($customer['id']);
             }
 
             if ($this->useAddressModel()) {
-                foreach ($this->addressModelColumnMap as $returnField => $queriedField) {
-                    if (isset($customer['billing'][$queriedField])) {
-                        $customer['billing'][$returnField] = $customer['billing'][$queriedField];
-                        unset($customer['billing'][$queriedField]);
+                foreach (static::$addressModelColumnMap as $returnField => $queriedField) {
+                    if (isset($customerBilling[$queriedField])) {
+                        $customerBilling[$returnField] = $customerBilling[$queriedField];
+                        unset($customerBilling[$queriedField]);
                     }
                 }
             }
+
+            $customer['billing'] = $customerBilling;
         }
 
         return $customers;
-    }
-
-    private function getHasConditions($fields)
-    {
-        $hasConditions = array();
-        $hasConditions['Id'] = in_array('id', $fields, true);
-        $hasConditions['Subs'] = in_array('subscribed', $fields, true);
-        $hasConditions['Salutation'] = in_array('billing.salutation', $fields, true);
-        $hasConditions['Birthday'] = in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true);
-
-        return $hasConditions;
     }
 
     /**
@@ -523,8 +512,8 @@ class NewsletterCustomer extends Resource
             $parts = explode('.', $field);
             switch ($parts[0]) {
                 case 'billing':
-                    $result['billing'][] = ($useAddressModel && isset($this->addressModelColumnMap[$parts[1]]))
-                        ? $this->addressModelColumnMap[$parts[1]] : $parts[1];
+                    $result['billing'][] = ($useAddressModel && isset(static::$addressModelColumnMap[$parts[1]]))
+                        ? static::$addressModelColumnMap[$parts[1]] : $parts[1];
                     break;
                 case 'country':
                     $result['billing'][] = 'countryId';

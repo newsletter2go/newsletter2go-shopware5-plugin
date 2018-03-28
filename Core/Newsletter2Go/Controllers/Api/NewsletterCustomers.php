@@ -68,16 +68,14 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         $offset = $this->Request()->getParam('start', false);
         $limit = $this->Request()->getParam('limit', false);
         $group = $this->Request()->getParam('group', false);
-        $fields = $this->Request()->getParam('fields', false);
-        $emails = $this->Request()->getParam('emails', false);
+        $fields = $this->Request()->getParam('fields', []);
+        $emails = $this->Request()->getParam('emails', []);
         $subShopId = $this->Request()->getParam('subShopId', 0);
 
-        $fields = json_decode($fields, true);
-        $emails = json_decode($emails, true);
+        $fields = (array)json_decode($fields, true);
+        $emails = (array)json_decode($emails, true);
         if (empty($fields)) {
-            foreach ($this->resource->getCustomerFields() as $field) {
-                $fields[] = $field['id'];
-            }
+            $fields = array_column($this->resource->getCustomerFields(), 'id');
         }
 
         if (strpos($group, 'campaign_') !== false) {
@@ -99,34 +97,30 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      */
     private function getOnlySubscribers($group, array $emails = [])
     {
-        $q = 'SELECT ma.email '
-            . 'FROM s_campaigns_mailaddresses ma '
-            . 'WHERE ma.email NOT IN (SELECT email FROM s_user) ';
+        $q = 'SELECT ma.email FROM s_campaigns_mailaddresses ma WHERE 1';
 
         if ($group) {
-            $q .= " AND ma.groupID = $group ";
+            $q .= " AND ma.groupID = $group";
         }
 
         if ($emails) {
-            $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
+            $where = strpos($q, 'WHERE') !== false ? 'AND' : 'WHERE';
+            $q .= $where . " ma.email IN ('" . implode("','", $emails) . "')";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
 
-        foreach ($subscribers as $key => $value) {
-            $sql = 'SELECT * '
-                . 'FROM s_campaigns_maildata '
-                . 'WHERE email = \'' . $value['email'] . '\' ';
-
+        foreach ($subscribers as &$subscriber) {
+            $sql = "SELECT * FROM s_campaigns_maildata WHERE email = '{$subscriber['email']}'";
             $subscriberData = Shopware()->Db()->fetchRow($sql);
 
             if ($subscriberData) {
-                $subscribers[$key]['firstName'] = $subscriberData['firstname'];
-                $subscribers[$key]['lastName'] = $subscriberData['lastname'];
-                $subscribers[$key]['salutation'] = $subscriberData['salutation'];
-                $subscribers[$key]['street'] = $subscriberData['street'];
-                $subscribers[$key]['zipCode'] = $subscriberData['zipcode'];
-                $subscribers[$key]['city'] = $subscriberData['city'];
+                $subscriber['firstName'] = $subscriberData['firstname'];
+                $subscriber['lastName'] = $subscriberData['lastname'];
+                $subscriber['salutation'] = $subscriberData['salutation'];
+                $subscriber['street'] = $subscriberData['street'];
+                $subscriber['zipCode'] = $subscriberData['zipcode'];
+                $subscriber['city'] = $subscriberData['city'];
             }
         }
 
@@ -146,5 +140,4 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
     {
         return $this->resource->getStreamList($group, $emails, $fields);
     }
-
 }
