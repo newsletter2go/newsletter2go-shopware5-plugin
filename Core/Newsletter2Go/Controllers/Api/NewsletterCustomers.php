@@ -104,8 +104,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         }
 
         if ($emails) {
-            $where = strpos($q, 'WHERE') !== false ? 'AND' : 'WHERE';
-            $q .= $where . " ma.email IN ('" . implode("','", $emails) . "')";
+            $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
