@@ -215,39 +215,72 @@ class NewsletterCustomer extends Resource
     {
         try {
             $this->checkPrivilege('read');
-            $groups = Shopware()->Db()->fetchAll(
-                'SELECT groupkey as \'id\', description as \'name\', description as \'description\' FROM s_core_customergroups'
+
+            return array_merge(
+                $this->getCustomerGroups(),
+                $this->getCampaignGroups(),
+                $this->getStreamGroups()
             );
-
-            foreach ($groups as &$group) {
-                $group['count'] = Shopware()->Db()->fetchOne(
-                    "SELECT count(*) as total FROM s_user WHERE customergroup = '{$group['id']}'"
-                );
-            }
-            unset($group);
-
-            $campaignGroups = Shopware()->Db()->fetchAll('SELECT * FROM s_campaigns_groups');
-            foreach ($campaignGroups as $campaignGroup) {
-                $subsCount = Shopware()->Db()->fetchOne(
-                    "SELECT count(*) as total
-                    FROM s_campaigns_mailaddresses
-                    WHERE groupID = {$campaignGroup['id']}");
-
-                $groups[] = array(
-                    'id' => 'campaign_' . $campaignGroup['id'],
-                    'name' => $campaignGroup['name'],
-                    'description' => null,
-                    'count' => $subsCount,
-                );
-            }
-
-            return $groups;
         } catch (\Exception $e) {
             return Nl2go_ResponseHelper::generateErrorResponse(
                 $e->getMessage(),
                 Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
             );
         }
+    }
+
+    /**
+     * @return array
+     */
+    private function getCustomerGroups()
+    {
+        return Shopware()->Db()->fetchAll("
+            SELECT groupkey AS 'id',
+                   description AS 'name',
+                   description AS 'description',
+                   (
+                       SELECT COUNT(*)
+                       FROM s_user
+                       WHERE s_user.customergroup = s_core_customergroups.groupkey
+                   ) AS 'count'
+            FROM s_core_customergroups
+        ");
+    }
+
+    /**
+     * @return array
+     */
+    private function getCampaignGroups()
+    {
+        return Shopware()->Db()->fetchAll("
+            SELECT CONCAT('campaign_', id) AS 'id',
+                   name AS 'name',
+                   NULL AS 'description',
+                   (
+                       SELECT count(*)
+                       FROM s_campaigns_mailaddresses
+                       WHERE s_campaigns_mailaddresses.groupID = s_campaigns_groups.id
+                   ) AS 'count'
+            FROM s_campaigns_groups
+        ");
+    }
+
+    /**
+     * @return array
+     */
+    private function getStreamGroups()
+    {
+        if (!class_exists(\Shopware\Models\CustomerStream\CustomerStream::class)) {
+            return []; // customer streams are not supported
+        }
+
+        return Shopware()->Db()->fetchAll("
+            SELECT CONCAT('stream_', id) AS 'id',
+                   name AS 'name',
+                   description AS 'description',
+                   0 AS 'count'
+            FROM s_customer_streams
+        ");
     }
 
     public function getPluginVersion()
