@@ -10,7 +10,6 @@ use Shopware\Models\Plugin\Plugin;
 
 class Nl2go_ResponseHelper
 {
-
     /**
      * err-number, that should be pulled, whenever credentials are missing
      */
@@ -24,27 +23,26 @@ class Nl2go_ResponseHelper
      */
     const ERRNO_PLUGIN_OTHER = 'int-1-600';
 
-    static function generateErrorResponse($message, $errorCode, $context = null)
+    public static function generateErrorResponse($message, $errorCode, $context = null)
     {
-        $res = array(
+        $res = [
             'success' => false,
             'message' => $message,
             'errorcode' => $errorCode,
-        );
-        if ($context != null) {
+        ];
+        if ($context) {
             $res['context'] = $context;
         }
 
         return $res;
     }
 
-    static function generateSuccessResponse($data = array())
+    public static function generateSuccessResponse(array $data = [])
     {
-        $res = array('success' => true, 'message' => 'OK');
+        $res = ['success' => true, 'message' => 'OK'];
 
         return array_merge($res, $data);
     }
-
 }
 
 /**
@@ -57,26 +55,26 @@ class NewsletterCustomer extends Resource
      * Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
      * @var array<string, string>
      */
-    private $addressModelColumnMap = [
+    private static $addressModelColumnMap = [
         'firstName' => 'firstname',
         'lastName' => 'lastname',
         'zipCode' => 'zipcode',
     ];
 
     /**
-     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Customer\Repository
+     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Customer\Customer
      */
     public function getRepositoryCustomer()
     {
-        return $this->getManager()->getRepository('Shopware\Models\Customer\Customer');
+        return $this->getManager()->getRepository(\Shopware\Models\Customer\Customer::class);
     }
 
     /**
-     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Newsletter\Repository
+     * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Newsletter\Address
      */
     public function getRepositoryAddress()
     {
-        return $this->getManager()->getRepository('Shopware\Models\Newsletter\Address');
+        return $this->getManager()->getRepository(\Shopware\Models\Newsletter\Address::class);
     }
 
     /**
@@ -84,8 +82,8 @@ class NewsletterCustomer extends Resource
      * @param bool $offset
      * @param bool $limit
      * @param string $group
-     * @param array $fields
-     * @param array $emails
+     * @param string[] $fields
+     * @param string[] $emails
      * @param int $subShopId
      *
      * @return array
@@ -97,8 +95,8 @@ class NewsletterCustomer extends Resource
         $offset = false,
         $limit = false,
         $group = '',
-        $fields = [],
-        $emails = [],
+        array $fields = [],
+        array $emails = [],
         $subShopId = 0
     ) {
         $this->checkPrivilege('read');
@@ -106,8 +104,8 @@ class NewsletterCustomer extends Resource
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
         $selectFields = [];
-        $returnCustomers = [];
         $arrangedFields = $this->arrangeFields($fields);
+
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
             ->where('customer.active = true');
@@ -150,96 +148,9 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $countries = Shopware()->Db()->fetchAll('SELECT id, countryname FROM s_core_countries');
-        $country = array_column($countries, 'countryname', 'id');
+        $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
 
-        $hasId = in_array('id', $fields, true);
-        $hasSubs = in_array('subscribed', $fields, true);
-        $hasSalutation = in_array('billing.salutation', $fields, true);
-        $hasBirthday = in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true);
-        if ($hasSubs) {
-            $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = array_fill_keys($emails, true);
-        }
-
-        $states = Shopware()->Db()->fetchAll('SELECT id, name FROM s_core_countries_states');
-        $state = array_column($states, 'name', 'id');
-
-        foreach ($customers as &$customer) {
-            $billing = $customer[$billingAddressField];
-            unset($customer[$billingAddressField]);
-            $customer['billing'] = $billing;
-
-            if (isset($customer['billing']['countryId'])) {
-                $customer['country'] = $country[$customer['billing']['countryId']];
-                unset($customer['billing']['countryId']);
-            }
-
-            $customer['state'] = empty($customer['billing']['stateId']) ? '' : $state[$customer['billing']['stateId']];
-            unset($customer['billing']['stateId']);
-
-            foreach ($customer['billing'] as &$defaultBillingAddress) {
-                if ($defaultBillingAddress === null) {
-                    $defaultBillingAddress = '';
-                }
-            }
-
-            if ($hasSubs) {
-                $customer['subscribed'] = isset($subscribers[$customer['email']]);
-            }
-
-            if ($subscribed && !$customer['subscribed']) {
-                continue;
-            }
-
-            if ($hasSalutation) {
-                $salutation = strtolower($customer['billing']['salutation']);
-
-                if ($salutation === 'mr') {
-                    $customer['billing']['salutation'] = 'm';
-                } else {
-                    if ($salutation === 'ms') {
-                        $customer['billing']['salutation'] = 'f';
-                    }
-                }
-            }
-
-            if ($hasBirthday) {
-                /** @var $birthday \DateTime */
-                $birthday = null;
-                if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
-                    $birthday = $customer['birthday'];
-                } else {
-                    if ($customer['billing']['birthday'] !== null) {
-                        $birthday = $customer['billing']['birthday'];
-                    }
-                }
-
-                $customer['birthday'] = $birthday ? $birthday->format('Y-m-d') : null;
-                unset($customer['billing']['birthday']);
-            }
-
-            if (!empty($arrangedFields['billing'])) {
-                unset($customer['billing']['id']);
-            }
-
-            if (!$hasId) {
-                unset($customer['id']);
-            }
-
-            if ($useAddressModel) {
-                foreach ($this->addressModelColumnMap as $returnField => $queriedField) {
-                    if (isset($customer['billing'][$queriedField])) {
-                        $customer['billing'][$returnField] = $customer['billing'][$queriedField];
-                        unset($customer['billing'][$queriedField]);
-                    }
-                }
-            }
-
-            $returnCustomers[] = $customer;
-        }
-
-        return ['data' => $returnCustomers];
+        return array('data' => $customers);
     }
 
     /**
@@ -304,38 +215,72 @@ class NewsletterCustomer extends Resource
     {
         try {
             $this->checkPrivilege('read');
-            $groups = Shopware()->Db()->fetchAll(
-                'SELECT groupkey as \'id\', description as \'name\', description as \'description\' FROM s_core_customergroups'
+
+            return array_merge(
+                $this->getCustomerGroups(),
+                $this->getCampaignGroups(),
+                $this->getStreamGroups()
             );
-
-            foreach ($groups as &$group) {
-                $group['count'] = Shopware()->Db()->fetchOne(
-                    "SELECT count(*) as total FROM s_user WHERE customergroup = '{$group['id']}'"
-                );
-            }
-
-            $campaignGroups = Shopware()->Db()->fetchAll('SELECT * FROM s_campaigns_groups');
-            foreach ($campaignGroups as $campaignGroup) {
-                $subsCount = Shopware()->Db()->fetchOne(
-                    "SELECT count(*) as total
-                    FROM s_campaigns_mailaddresses
-                    WHERE groupID = {$campaignGroup['id']}");
-
-                $groups[] = array(
-                    'id' => 'campaign_' . $campaignGroup['id'],
-                    'name' => $campaignGroup['name'],
-                    'description' => null,
-                    'count' => $subsCount,
-                );
-            }
-
-            return $groups;
         } catch (\Exception $e) {
             return Nl2go_ResponseHelper::generateErrorResponse(
                 $e->getMessage(),
                 Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
             );
         }
+    }
+
+    /**
+     * @return array
+     */
+    private function getCustomerGroups()
+    {
+        return Shopware()->Db()->fetchAll("
+            SELECT groupkey AS 'id',
+                   description AS 'name',
+                   description AS 'description',
+                   (
+                       SELECT COUNT(*)
+                       FROM s_user
+                       WHERE s_user.customergroup = s_core_customergroups.groupkey
+                   ) AS 'count'
+            FROM s_core_customergroups
+        ");
+    }
+
+    /**
+     * @return array
+     */
+    private function getCampaignGroups()
+    {
+        return Shopware()->Db()->fetchAll("
+            SELECT CONCAT('campaign_', id) AS 'id',
+                   name AS 'name',
+                   NULL AS 'description',
+                   (
+                       SELECT count(*)
+                       FROM s_campaigns_mailaddresses
+                       WHERE s_campaigns_mailaddresses.groupID = s_campaigns_groups.id
+                   ) AS 'count'
+            FROM s_campaigns_groups
+        ");
+    }
+
+    /**
+     * @return array
+     */
+    private function getStreamGroups()
+    {
+        if (!class_exists(\Shopware\Models\CustomerStream\CustomerStream::class)) {
+            return []; // customer streams are not supported
+        }
+
+        return Shopware()->Db()->fetchAll("
+            SELECT CONCAT('stream_', id) AS 'id',
+                   name AS 'name',
+                   description AS 'description',
+                   0 AS 'count'
+            FROM s_customer_streams
+        ");
     }
 
     public function getPluginVersion()
@@ -358,36 +303,37 @@ class NewsletterCustomer extends Resource
 
     public function getCustomerFields()
     {
-        $fields = array();
-        $fields[] = $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer');
-        $fields[] = $this->createField('email', 'E-mail address');
-        $fields[] = $this->createField('active', 'Active', 'Is customer active', 'Boolean');
-        $fields[] = $this->createField('accountMode', 'Account mode', '', 'Integer');
-        $fields[] = $this->createField('confirmationKey', 'Confirmation key', '', 'String');
-        $fields[] = $this->createField('firstLogin', 'First login', '', 'Date');
-        $fields[] = $this->createField('lastLogin', 'Last login', '', 'Date');
-        $fields[] = $this->createField('groupKey', 'Customer group');
-        $fields[] = $this->createField('languageId', 'Language', '', 'Integer');
-        $fields[] = $this->createField('paymentPreset', 'Payment preset', '', 'Integer');
-        $fields[] = $this->createField('shopId', 'Subshop Id.', '', 'Integer');
-        $fields[] = $this->createField('paymentId', 'Price group Id.', '', 'Integer');
-        $fields[] = $this->createField('internalComment', 'Internal Comment');
-        $fields[] = $this->createField('referer');
-        $fields[] = $this->createField('state');
-        $fields[] = $this->createField('country');
-        $fields[] = $this->createField('subscribed', '', '', 'Boolean');
-        $fields[] = $this->createField('failedLogins', 'Failed logins', '', 'Integer');
-        $fields[] = $this->createField('billing.company', 'Company');
-        $fields[] = $this->createField('billing.department', 'Department');
-        $fields[] = $this->createField('billing.salutation', 'Salutation');
-        $fields[] = $this->createField('billing.firstName', 'Firstname');
-        $fields[] = $this->createField('billing.lastName', 'Lastname');
-        $fields[] = $this->createField('billing.street', 'Street');
-        $fields[] = $this->createField('billing.zipCode', 'Zipcode');
-        $fields[] = $this->createField('billing.city', 'City');
-        $fields[] = $this->createField('billing.phone', 'Phone');
-        $fields[] = $this->createField('billing.title', 'Title');
-        $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
+        $fields = [
+            $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer'),
+            $this->createField('email', 'E-mail address'),
+            $this->createField('active', 'Active', 'Is customer active', 'Boolean'),
+            $this->createField('accountMode', 'Account mode', '', 'Integer'),
+            $this->createField('confirmationKey', 'Confirmation key', '', 'String'),
+            $this->createField('firstLogin', 'First login', '', 'Date'),
+            $this->createField('lastLogin', 'Last login', '', 'Date'),
+            $this->createField('groupKey', 'Customer group'),
+            $this->createField('languageId', 'Language', '', 'Integer'),
+            $this->createField('paymentPreset', 'Payment preset', '', 'Integer'),
+            $this->createField('shopId', 'Subshop Id.', '', 'Integer'),
+            $this->createField('paymentId', 'Price group Id.', '', 'Integer'),
+            $this->createField('internalComment', 'Internal Comment'),
+            $this->createField('referer'),
+            $this->createField('state'),
+            $this->createField('country'),
+            $this->createField('subscribed', '', '', 'Boolean'),
+            $this->createField('failedLogins', 'Failed logins', '', 'Integer'),
+            $this->createField('billing.company', 'Company'),
+            $this->createField('billing.department', 'Department'),
+            $this->createField('billing.salutation', 'Salutation'),
+            $this->createField('billing.firstName', 'Firstname'),
+            $this->createField('billing.lastName', 'Lastname'),
+            $this->createField('billing.street', 'Street'),
+            $this->createField('billing.zipCode', 'Zipcode'),
+            $this->createField('billing.city', 'City'),
+            $this->createField('billing.phone', 'Phone'),
+            $this->createField('billing.title', 'Title'),
+            $this->createField('birthday', 'Birthday', '', 'Date'),
+        ];
 
         if (\Shopware::VERSION >= '5.2') {
             $fields[] = $this->createField('number', 'Customernumber');
@@ -398,6 +344,173 @@ class NewsletterCustomer extends Resource
         return $fields;
     }
 
+    /**
+     * Get stream customers list
+     *
+     * @param $group
+     * @param string[] $emails
+     * @param string[] $fields
+     *
+     * @return array
+     */
+    public function getStreamList($group, array $emails = [], array $fields = [])
+    {
+        $useAddressModel = $this->useAddressModel();
+        $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
+        $selectFields = array();
+        $arrangedFields = $this->arrangeFields($fields);
+
+        $builder = $this->getRepositoryCustomer()
+            ->createQueryBuilder('customer')
+            ->innerJoin(Mapping::class, 'mapping', Expr\Join::INNER_JOIN, 'mapping.customerId = customer.id')
+            ->where('customer.active = true');
+
+        if ($group) {
+            $builder->andWhere('mapping.streamId = ' . $group);
+        }
+
+        $selectFields[] = 'PARTIAL customer.{' . implode(',', $arrangedFields['customer']) . '}';
+        if (!empty($arrangedFields['billing'])) {
+            $arrangedFields['billing'][] = 'id';
+            $builder->leftJoin('customer.' . $billingAddressField, 'billing');
+            $selectFields[] = 'PARTIAL billing.{' . implode(',', $arrangedFields['billing']) . '}';
+        }
+
+        if (!empty($emails)) {
+            $builder->andWhere("customer.email IN ('" . implode("','", $emails) . "')");
+        }
+
+        $builder->select($selectFields);
+
+        $query = $builder->getQuery();
+        $query->setHydrationMode($this->getResultMode());
+        $pagination = $this->getManager()->createPaginator($query);
+
+        $customers = $pagination->getIterator()->getArrayCopy();
+
+        $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
+
+        return array('data' => $customers);
+    }
+
+    /**
+     * Fix customer information
+     *
+     * @param array $customers
+     * @param $billingAddressField
+     * @param string[] $fields
+     *
+     * @return array
+     */
+    private function fixCustomers($customers, $billingAddressField, $fields)
+    {
+        $subscribers = null;
+        if (in_array('subscribed', $fields, true)) {
+            $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
+            $subscribers = array_fill_keys($emails, true);
+        }
+
+        $country = $this->getCountry();
+        $state = $this->getState();
+
+        foreach ($customers as &$customer) {
+            /** @var array $customerBilling */
+            $customerBilling = $customer[$billingAddressField];
+            unset($customer[$billingAddressField]);
+
+            if (isset($customerBilling['countryId'])) {
+                $customer['country'] = $country[$customerBilling['countryId']];
+                unset($customerBilling['countryId']);
+            }
+
+            $customer['state'] = empty($customerBilling['stateId']) ? '' : $state[$customerBilling['stateId']];
+            unset($customerBilling['stateId']);
+
+            foreach ($customerBilling as &$defaultBillingAddress) {
+                if ($defaultBillingAddress === null) {
+                    $defaultBillingAddress = '';
+                }
+            }
+            unset($defaultBillingAddress);
+
+            if (is_array($subscribers)) {
+                $customer['subscribed'] = isset($subscribers[$customer['email']]);
+            }
+
+            if (in_array('billing.salutation', $fields, true)) {
+                $salutation = strtolower($customerBilling['salutation']);
+
+                if ($salutation === 'mr') {
+                    $customerBilling['salutation'] = 'm';
+                } else if ($salutation === 'ms') {
+                    $customerBilling['salutation'] = 'f';
+                }
+            }
+
+            if (in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true)) {
+                /** @var $birthday \DateTime */
+                $birthday = null;
+                if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
+                    $birthday = $customer['birthday'];
+                } else if ($customerBilling['birthday'] !== null) {
+                    $birthday = $customerBilling['birthday'];
+                }
+
+                $customer['birthday'] = $birthday ? $birthday->format('Y-m-d') : null;
+                unset($customerBilling['birthday']);
+            }
+
+            if (!empty($arrangedFields['billing'])) {
+                unset($customerBilling['id']);
+            }
+
+            if (!in_array('id', $fields, true)) {
+                unset($customer['id']);
+            }
+
+            if ($this->useAddressModel()) {
+                foreach (static::$addressModelColumnMap as $returnField => $queriedField) {
+                    if (isset($customerBilling[$queriedField])) {
+                        $customerBilling[$returnField] = $customerBilling[$queriedField];
+                        unset($customerBilling[$queriedField]);
+                    }
+                }
+            }
+
+            $customer['billing'] = $customerBilling;
+        }
+
+        return $customers;
+    }
+
+    /**
+     * @return array
+     */
+    private function getCountry()
+    {
+        $countries = Shopware()->Db()->fetchAll('SELECT id, countryname FROM s_core_countries');
+
+        return array_column($countries, 'countryname', 'id');
+    }
+
+    /**
+     * @return array
+     */
+    private function getState()
+    {
+        $states = Shopware()->Db()->fetchAll('SELECT id, name FROM s_core_countries_states');
+
+        return array_column($states, 'name', 'id');
+    }
+
+    /**
+     * @param string $id
+     * @param string $name
+     * @param string $description
+     * @param string $type
+     *
+     * @return array
+     */
     private function createField($id, $name = '', $description = '', $type = 'String')
     {
         if ($name === '') {
@@ -431,8 +544,8 @@ class NewsletterCustomer extends Resource
             $parts = explode('.', $field);
             switch ($parts[0]) {
                 case 'billing':
-                    $result['billing'][] = ($useAddressModel && isset($this->addressModelColumnMap[$parts[1]]))
-                        ? $this->addressModelColumnMap[$parts[1]] : $parts[1];
+                    $result['billing'][] = ($useAddressModel && isset(static::$addressModelColumnMap[$parts[1]]))
+                        ? static::$addressModelColumnMap[$parts[1]] : $parts[1];
                     break;
                 case 'country':
                     $result['billing'][] = 'countryId';
