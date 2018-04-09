@@ -3,7 +3,7 @@
 class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_Api_Rest
 {
     /**
-     * @var \Shopware\Components\Api\Resource\NewsletterCustomer
+     * @var Shopware\Components\Api\Resource\NewsletterCustomer
      */
     protected $resource;
 
@@ -57,31 +57,26 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         $this->View()->assign(array('success' => true));
     }
 
-    /**
-     * @return array
-     *
-     * @throws \Shopware\Components\Api\Exception\PrivilegeException
-     */
     private function getCustomers()
     {
         $subscribed = $this->Request()->getParam('subscribed', false);
         $offset = $this->Request()->getParam('start', false);
         $limit = $this->Request()->getParam('limit', false);
         $group = $this->Request()->getParam('group', false);
-        $fields = $this->Request()->getParam('fields', []);
-        $emails = $this->Request()->getParam('emails', []);
+        $fields = $this->Request()->getParam('fields', false);
+        $emails = $this->Request()->getParam('emails', false);
         $subShopId = $this->Request()->getParam('subShopId', 0);
 
-        $fields = (array)json_decode($fields, true);
-        $emails = (array)json_decode($emails, true);
+        $fields = json_decode($fields, true);
+        $emails = json_decode($emails, true);
         if (empty($fields)) {
-            $fields = array_column($this->resource->getCustomerFields(), 'id');
+            foreach ($this->resource->getCustomerFields() as $field) {
+                $fields[] = $field['id'];
+            }
         }
 
         if (strpos($group, 'campaign_') !== false) {
             $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails);
-        } else if (strpos($group, 'stream_') !== false) {
-            $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields);
         } else {
             $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
         }
@@ -95,48 +90,39 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlySubscribers($group, array $emails = [])
+    private function getOnlySubscribers($group, $emails = array())
     {
-        $q = 'SELECT ma.email FROM s_campaigns_mailaddresses ma WHERE 1';
+        $q = 'SELECT ma.email '
+            . 'FROM s_campaigns_mailaddresses ma ';
 
         if ($group) {
-            $q .= " AND ma.groupID = $group";
+            $q .= " WHERE ma.groupID = $group ";
         }
 
         if ($emails) {
-            $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
+            $where = strpos($q, 'WHERE') !== false ? 'AND' : 'WHERE';
+            $q .= $where . " ma.email IN ('" . implode("','", $emails) . "')";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
 
-        foreach ($subscribers as &$subscriber) {
-            $sql = "SELECT * FROM s_campaigns_maildata WHERE email = '{$subscriber['email']}'";
+        foreach ($subscribers as $key => $value) {
+            $sql = 'SELECT * '
+                . 'FROM s_campaigns_maildata '
+                . 'WHERE email = \'' . $value['email'] . '\' ';
+
             $subscriberData = Shopware()->Db()->fetchRow($sql);
 
             if ($subscriberData) {
-                $subscriber['firstName'] = $subscriberData['firstname'];
-                $subscriber['lastName'] = $subscriberData['lastname'];
-                $subscriber['salutation'] = $subscriberData['salutation'];
-                $subscriber['street'] = $subscriberData['street'];
-                $subscriber['zipCode'] = $subscriberData['zipcode'];
-                $subscriber['city'] = $subscriberData['city'];
+                $subscribers[$key]['firstName'] = $subscriberData['firstname'];
+                $subscribers[$key]['lastName'] = $subscriberData['lastname'];
+                $subscribers[$key]['salutation'] = $subscriberData['salutation'];
+                $subscribers[$key]['street'] = $subscriberData['street'];
+                $subscribers[$key]['zipCode'] = $subscriberData['zipcode'];
+                $subscribers[$key]['city'] = $subscriberData['city'];
             }
         }
 
         return array('data' => $subscribers);
-    }
-
-    /**
-     * Get only customers for specific stream
-     *
-     * @param string $group
-     * @param string[] $emails
-     * @param string[] $fields
-     *
-     * @return array
-     */
-    private function getOnlyStreamCustomers($group, array $emails = [], array $fields = [])
-    {
-        return $this->resource->getStreamList($group, $emails, $fields);
     }
 }
