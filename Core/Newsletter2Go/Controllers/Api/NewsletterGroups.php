@@ -5,7 +5,7 @@ class Shopware_Controllers_Api_NewsletterGroups extends Shopware_Controllers_Api
     /**
      * @var Shopware\Components\Api\Resource\NewsletterCustomer
      */
-    protected $resource = null;
+    protected $resource;
 
     public function init()
     {

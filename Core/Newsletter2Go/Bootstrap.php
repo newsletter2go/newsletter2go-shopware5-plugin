@@ -8,7 +8,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.1.18';
+    const VERSION = '4.1.17';
 
     /**
      * Capabilities for plugin.
@@ -45,7 +45,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     }
 
     /**
-     * Informations about plugin.
+     * Information about the plugin.
      *
      * @return array
      */
@@ -85,18 +85,20 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      * Remove attributes from table
      *
      * @return bool
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function uninstall()
     {
         $this->removeDatabase();
 
-        $user = Shopware()->Models()->getRepository('Shopware\Models\User\User')
+        $user = Shopware()->Models()
+            ->getRepository(\Shopware\Models\User\User::class)
             ->findOneBy(array('username' => 'newsletter2goApiUser'));
         if ($user) {
             Shopware()->Models()->remove($user);
         }
 
-        /* @var $rootNode  \Shopware\Models\Menu\Menu */
         $menuItem = $this->Menu()->findOneBy(array('label' => 'Newsletter2Go'));
         Shopware()->Models()->remove($menuItem);
         Shopware()->Models()->flush();
@@ -274,7 +276,8 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     protected function registerCustomModels()
     {
         $this->Application()->Loader()->registerNamespace(
-            'Shopware\Models\Newsletter2Go', $this->Path() . 'Models/'
+            'Shopware\Models\Newsletter2Go',
+            $this->Path() . 'Models/'
         );
         $this->Application()->ModelAnnotations()->addPaths(
             array(
@@ -289,7 +292,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $tool = new \Doctrine\ORM\Tools\SchemaTool($em);
 
         $classes = array(
-            $em->getClassMetadata('Shopware\Models\Newsletter2Go\Newsletter2Go'),
+            $em->getClassMetadata(\Shopware\Models\Newsletter2Go\Newsletter2Go::class),
         );
 
         try {
@@ -352,6 +355,9 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend', 'onFrontendPostDispatch');
     }
 
+    /**
+     * @throws Exception
+     */
     private function registerControllers()
     {
         // Added to support older versions (<4.2.0)
@@ -375,5 +381,4 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->subscribeEvent($path . 'Api_ArticleSeoLink', 'getArticleSeoLinkApiController');
         }
     }
-
 }

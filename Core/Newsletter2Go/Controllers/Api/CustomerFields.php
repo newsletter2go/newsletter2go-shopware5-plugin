@@ -5,7 +5,7 @@ class Shopware_Controllers_Api_CustomerFields extends Shopware_Controllers_Api_R
     /**
      * @var Shopware\Components\Api\Resource\NewsletterCustomer
      */
-    protected $resource = null;
+    protected $resource;
     
     public function init()
     {
