@@ -260,7 +260,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     {
         return $this->Path() . 'Controllers/Api/NewsletterScriptUrls.php';
     }
-    
+
     /**
      * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Api_ArticleSeoLink
      * event. This event is fired when shopware trying to access the plugin ArticleSeoLink controller.
@@ -271,6 +271,18 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     public function getArticleSeoLinkApiController(Enlight_Event_EventArgs $arguments)
     {
         return $this->Path() . 'Controllers/Api/ArticleSeoLink.php';
+    }
+
+    /**
+     * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Api_ArticleSeoLink
+     * event. This event is fired when shopware trying to access the plugin ArticleSeoLink controller.
+     *
+     * @param Enlight_Event_EventArgs $arguments
+     * @return string
+     */
+    public function getShopLocaleApiController(Enlight_Event_EventArgs $arguments)
+    {
+        return $this->Path() . 'Controllers/Api/ShopLocale.php';
     }
 
     protected function registerCustomModels()
@@ -370,6 +382,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->registerController('Api', 'CustomerFields');
             $this->registerController('Api', 'ArticleMediaFiles');
             $this->registerController('Api', 'ArticleSeoLink');
+            $this->registerController('Api', 'ShopLocale');
         } else {
             $path = 'Enlight_Controller_Dispatcher_ControllerPath_';
             $this->subscribeEvent($path . 'Backend_Newsletter2go', 'getNewsletter2goBackendController');
@@ -379,6 +392,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $this->subscribeEvent($path . 'Api_CustomerFields', 'getCustomerFieldsApiController');
             $this->subscribeEvent($path . 'Api_ArticleMediaFiles', 'getArticleMediaFilesApiController');
             $this->subscribeEvent($path . 'Api_ArticleSeoLink', 'getArticleSeoLinkApiController');
+            $this->subscribeEvent($path . 'Api_ShopLocale', 'getShopLocaleApiController');
         }
     }
 }
