@@ -48,5 +48,4 @@ class Newsletter2GoHelper
 
         return $categoryName;
     }
-
 }

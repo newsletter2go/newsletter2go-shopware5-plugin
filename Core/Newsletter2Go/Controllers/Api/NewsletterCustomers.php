@@ -49,12 +49,20 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      */
     public function putAction()
     {
-        $email = $this->Request()->getParam('id');
-        $params = $this->Request()->getPost();
+        try {
+            $email = $this->Request()->getParam('id');
+            $params = $this->Request()->getPost();
 
-        $this->resource->update($email, $params);
+            $this->resource->update($email, $params);
 
-        $this->View()->assign(array('success' => true));
+            $this->View()->assign(['success' => true]);
+        } catch (\Exception $e) {
+            $this->View()->assign([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errorcode' => \Shopware_Plugins_Core_Newsletter2Go_Bootstrap::ERRNO_PLUGIN_OTHER,
+            ]);
+        }
     }
 
     /**
