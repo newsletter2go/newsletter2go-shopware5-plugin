@@ -8,43 +8,6 @@ use Doctrine\ORM\Query\Expr;
 use Shopware\Models\Newsletter\Group;
 use Shopware\Models\Plugin\Plugin;
 
-class Nl2go_ResponseHelper
-{
-    /**
-     * err-number, that should be pulled, whenever credentials are missing
-     */
-    const ERRNO_PLUGIN_CREDENTIALS_MISSING = 'int-1-404';
-    /**
-     *err-number, that should be pulled, whenever credentials are wrong
-     */
-    const ERRNO_PLUGIN_CREDENTIALS_WRONG = 'int-1-403';
-    /**
-     * err-number for all other (intern) errors. More Details to the failure should be added to error-message
-     */
-    const ERRNO_PLUGIN_OTHER = 'int-1-600';
-
-    public static function generateErrorResponse($message, $errorCode, $context = null)
-    {
-        $res = [
-            'success' => false,
-            'message' => $message,
-            'errorcode' => $errorCode,
-        ];
-        if ($context) {
-            $res['context'] = $context;
-        }
-
-        return $res;
-    }
-
-    public static function generateSuccessResponse(array $data = [])
-    {
-        $res = ['success' => true, 'message' => 'OK'];
-
-        return array_merge($res, $data);
-    }
-}
-
 /**
  * @category  Shopware
  * @package   Shopware\Plugins\n2goExtendApi
@@ -160,73 +123,66 @@ class NewsletterCustomer extends Resource
      * @return mixed
      *
      * @throws \Shopware\Components\Api\Exception\PrivilegeException
+     * @throws \Shopware\Components\Api\Exception\OrmException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function update($email, array $params)
     {
         $this->checkPrivilege('update');
 
         if (empty($email)) {
-            return Nl2go_ResponseHelper::generateErrorResponse(
-                'email-param is missing',
-                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
-            );
+            throw new \InvalidArgumentException('email-param is missing');
         }
-        try {
-            if ($params['Unsubscribe']) {
-                /** @var $article Address */
-                $subscription = $this->getRepositoryAddress()->findOneBy(array('email' => $email));
-                $this->getManager()->remove($subscription);
-                $this->flush();
+
+        if ($params['Unsubscribe']) {
+            /** @var $article Address */
+            $subscription = $this->getRepositoryAddress()->findOneBy(['email' => $email]);
+            $this->getManager()->remove($subscription);
+            $this->flush();
+
+            return true;
+        }
+
+        if ($params['Subscribe']) {
+            $groups = Shopware()->Models()->getRepository(Group::class)->findAll();
+            if (empty($groups) === false && is_array($groups)) {
+                $group = reset($groups);
+                $groupId = $group->getId();
+
+                $customer = $this->getRepositoryCustomer()->findOneBy(['email' => $email]);
+                $subscription = new Address();
+
+                $subscription->setIsCustomer($customer ? true : false);
+                $subscription->setEmail($email);
+                $subscription->setGroupId($groupId);
+
+                $om = $this->getManager();
+                $om->persist($subscription);
+                $om->flush();
 
                 return true;
             }
-
-            if ($params['Subscribe']) {
-                $groups = Shopware()->Models()->getRepository(Group::class)->findAll();
-                if (empty($groups) === false && is_array($groups)) {
-                    $group = reset($groups);
-                    $groupId = $group->getId();
-
-                    $customer = $this->getRepositoryCustomer()->findOneBy(array('email' => $email));
-                    $subscription = new Address();
-
-                    $subscription->setIsCustomer($customer ? true : false);
-                    $subscription->setEmail($email);
-                    $subscription->setGroupId($groupId);
-
-                    $om = $this->getManager();
-                    $om->persist($subscription);
-                    $om->flush();
-
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (\Exception $e) {
-            return Nl2go_ResponseHelper::generateErrorResponse(
-                $e->getMessage(),
-                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
-            );
         }
+
+        return false;
     }
 
+    /**
+     * @return array
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
+     */
     public function getNewsletterGroups()
     {
-        try {
-            $this->checkPrivilege('read');
+        $this->checkPrivilege('read');
 
-            return array_merge(
-                $this->getCustomerGroups(),
-                $this->getCampaignGroups(),
-                $this->getStreamGroups()
-            );
-        } catch (\Exception $e) {
-            return Nl2go_ResponseHelper::generateErrorResponse(
-                $e->getMessage(),
-                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
-            );
-        }
+        return array_merge(
+            $this->getCustomerGroups(),
+            $this->getCampaignGroups(),
+            $this->getStreamGroups()
+        );
     }
 
     /**
@@ -283,22 +239,21 @@ class NewsletterCustomer extends Resource
         ");
     }
 
+    /**
+     * @return string
+     *
+     * @throws \Shopware\Components\Api\Exception\PrivilegeException
+     */
     public function getPluginVersion()
     {
-        try {
-            $this->checkPrivilege('read');
-            /** @var Plugin $plugin */
-            $plugin = Shopware()->Models()
-                ->getRepository(Plugin::class)
-                ->findOneBy(['name' => 'Newsletter2Go']);
+        $this->checkPrivilege('read');
 
-            return str_replace('.', '', $plugin->getVersion());
-        } catch (\Exception $e) {
-            return Nl2go_ResponseHelper::generateErrorResponse(
-                $e->getMessage(),
-                Nl2go_ResponseHelper::ERRNO_PLUGIN_OTHER
-            );
-        }
+        /** @var Plugin $plugin */
+        $plugin = Shopware()->Models()
+            ->getRepository(Plugin::class)
+            ->findOneBy(['name' => 'Newsletter2Go']);
+
+        return str_replace('.', '', $plugin->getVersion());
     }
 
     public function getCustomerFields()

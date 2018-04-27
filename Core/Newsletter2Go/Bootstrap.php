@@ -11,6 +11,21 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     const VERSION = '4.1.18';
 
     /**
+     * err-number, that should be pulled, whenever credentials are missing
+     */
+    const ERRNO_PLUGIN_CREDENTIALS_MISSING = 'int-1-404';
+
+    /**
+     *err-number, that should be pulled, whenever credentials are wrong
+     */
+    const ERRNO_PLUGIN_CREDENTIALS_WRONG = 'int-1-403';
+
+    /**
+     * err-number for all other (intern) errors. More Details to the failure should be added to error-message
+     */
+    const ERRNO_PLUGIN_OTHER = 'int-1-600';
+
+    /**
      * Capabilities for plugin.
      *
      * @return array
