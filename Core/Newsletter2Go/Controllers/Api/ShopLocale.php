@@ -15,11 +15,11 @@ class Shopware_Controllers_Api_ShopLocale extends Shopware_Controllers_Api_Rest
     /**
      * GET /api/shopLocale/
      */
-    public function getAction()
+    public function indexAction()
     {
         try {
             $this->View()->assign([
-                'locale' => $this->resource->getShopLocale($this->Request()->getParam('id')),
+                'locale' => $this->resource->getShopLocale($this->Request()->getParam('shopId')),
                 'success' => true,
             ]);
         } catch (\Exception $e) {
