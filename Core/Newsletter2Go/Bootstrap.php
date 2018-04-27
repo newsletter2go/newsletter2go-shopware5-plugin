@@ -81,7 +81,9 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     /**
      * This derived method is executed each time if this plugin will will be installed
      *
-     * @return array
+     * @return array|bool
+     *
+     * @throws Exception
      */
     public function install()
     {
@@ -135,8 +137,6 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      * Add template path
      *
      * @param Enlight_Event_EventArgs $args
-     *
-     * @return string
      */
     public function onGetControllerPathBackendNewsletter2go(Enlight_Event_EventArgs $args)
     {
@@ -147,8 +147,6 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      * Add template path
      *
      * @param Enlight_Event_EventArgs $args
-     *
-     * @return string
      */
     public function onBackendPostDispatch(Enlight_Event_EventArgs $args)
     {
