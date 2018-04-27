@@ -11,7 +11,6 @@ use Shopware\Components\Routing\Router;
  */
 class ArticleSeoLink extends Resource
 {
-
     /**
      * Retrieves SEO link of an article
      *

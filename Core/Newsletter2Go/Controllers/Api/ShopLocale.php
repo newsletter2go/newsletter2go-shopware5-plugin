@@ -17,9 +17,17 @@ class Shopware_Controllers_Api_ShopLocale extends Shopware_Controllers_Api_Rest
      */
     public function getAction()
     {
-        $this->View()->assign([
-            'locale' => $this->resource->getShopLocale($this->Request()->getParam('id')),
-            'success' => true,
-        ]);
+        try {
+            $this->View()->assign([
+                'locale' => $this->resource->getShopLocale($this->Request()->getParam('id')),
+                'success' => true,
+            ]);
+        } catch (\Exception $e) {
+            $this->View()->assign([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errorcode' => \Shopware_Plugins_Core_Newsletter2Go_Bootstrap::ERRNO_PLUGIN_OTHER,
+            ]);
+        }
     }
 }
