@@ -8,7 +8,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.1.18';
+    const VERSION = '4.1.17';
 
     /**
      * err-number, that should be pulled, whenever credentials are missing
@@ -123,6 +123,9 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         return true;
     }
 
+    /**
+     * Add plugin namespaces
+     */
     public function onEnlightControllerFrontStartDispatch()
     {
         $this->registerCustomModels();
@@ -130,6 +133,9 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->Application()->Loader()->registerNamespace('Shopware\Components', $this->Path() . 'Components/');
     }
 
+    /**
+     * Add template path
+     */
     public function onGetControllerPathBackendNewsletter2go()
     {
         $this->Application()->Template()->addTemplateDir($this->Path() . 'Views/', '');
