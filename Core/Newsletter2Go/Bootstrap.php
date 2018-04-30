@@ -279,15 +279,16 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
 
     protected function registerCustomModels()
     {
-        $this->Application()->Loader()->registerNamespace(
-            'Shopware\Models\Newsletter2Go',
-            $this->Path() . 'Models/'
-        );
-        $this->Application()->ModelAnnotations()->addPaths(
-            array(
-                $this->Path() . 'Models/',
-            )
-        );
+        $dir = $this->Path();
+
+        if (method_exists(Shopware(), 'Container')) {
+            $container = Shopware()->Container();
+            $container->get('loader')->registerNamespace('Shopware\Models\Newsletter2Go', $dir . 'Models/');
+            $container->get('modelannotations')->addPaths([$dir . 'Models/']);
+        } else {
+            $this->Application()->Loader()->registerNamespace('Shopware\Models\Newsletter2Go', $dir . 'Models/');
+            $this->Application()->ModelAnnotations()->addPaths([$dir . 'Models/']);
+        }
     }
 
     private function executeSchemaAction($action)
