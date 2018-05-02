@@ -15,7 +15,7 @@ class ArticleMediaFiles extends Resource
     const COMPARE_VERSION = '5.1.0';
 
     /**
-     * Retrieves the list of article\'s media files
+     * Retrieves a list of media files for an article
      *
      * @param $id
      *
@@ -26,6 +26,7 @@ class ArticleMediaFiles extends Resource
     public function getArticleMediaFiles($id)
     {
         $this->checkPrivilege('read');
+
         $mediaPath = Shopware()->Modules()->System()->sPathArticleImg;
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
         $version = \Shopware::VERSION;

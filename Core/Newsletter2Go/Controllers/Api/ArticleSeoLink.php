@@ -15,7 +15,7 @@ class Shopware_Controllers_Api_ArticleSeoLink extends Shopware_Controllers_Api_R
     /**
      * Get list of media files for specific article
      *
-     * GET /api/ArticleSeoLink/
+     * GET /api/articleSeoLink/
      *
      * @throws \Shopware\Components\Api\Exception\PrivilegeException
      */
