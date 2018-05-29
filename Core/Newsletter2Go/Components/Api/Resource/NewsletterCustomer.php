@@ -113,7 +113,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
 
-        return ['data' => $customers];
+        return array('data' => $customers);
     }
 
     /**
