@@ -227,7 +227,7 @@ class NewsletterCustomer extends Resource
     private function getStreamGroups()
     {
         if (!class_exists('Shopware\Models\CustomerStream\CustomerStream')) {
-            return []; // customer streams are not supported
+            return array(); // customer streams are not supported
         }
 
         return Shopware()->Db()->fetchAll("
