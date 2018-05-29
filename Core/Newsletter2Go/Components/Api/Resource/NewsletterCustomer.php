@@ -18,18 +18,18 @@ class NewsletterCustomer extends Resource
      * Used for migrating fields from \Shopware\Models\Customer\Billing to \Shopware\Models\Customer\Address
      * @var array<string, string>
      */
-    private static $addressModelColumnMap = [
+    private static $addressModelColumnMap = array(
         'firstName' => 'firstname',
         'lastName' => 'lastname',
         'zipCode' => 'zipcode',
-    ];
+    );
 
     /**
      * @return \Doctrine\ORM\EntityRepository|\Shopware\Models\Customer\Customer
      */
     public function getRepositoryCustomer()
     {
-        return $this->getManager()->getRepository(\Shopware\Models\Customer\Customer::class);
+        return $this->getManager()->getRepository('Shopware\Models\Customer\Customer');
     }
 
     /**
@@ -37,7 +37,7 @@ class NewsletterCustomer extends Resource
      */
     public function getRepositoryAddress()
     {
-        return $this->getManager()->getRepository(\Shopware\Models\Newsletter\Address::class);
+        return $this->getManager()->getRepository('Shopware\Models\Newsletter\Address');
     }
 
     /**
@@ -58,15 +58,15 @@ class NewsletterCustomer extends Resource
         $offset = false,
         $limit = false,
         $group = '',
-        array $fields = [],
-        array $emails = [],
+        array $fields = array(),
+        array $emails = array(),
         $subShopId = 0
     ) {
         $this->checkPrivilege('read');
 
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
-        $selectFields = [];
+        $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
 
         $builder = $this->getRepositoryCustomer()
@@ -138,7 +138,7 @@ class NewsletterCustomer extends Resource
 
         if ($params['Unsubscribe']) {
             /** @var $article Address */
-            $subscription = $this->getRepositoryAddress()->findOneBy(['email' => $email]);
+            $subscription = $this->getRepositoryAddress()->findOneBy(array('email' => $email));
             $this->getManager()->remove($subscription);
             $this->flush();
 
@@ -146,12 +146,12 @@ class NewsletterCustomer extends Resource
         }
 
         if ($params['Subscribe']) {
-            $groups = Shopware()->Models()->getRepository(Group::class)->findAll();
+            $groups = Shopware()->Models()->getRepository('Shopware\Models\Newsletter\Group')->findAll();
             if (empty($groups) === false && is_array($groups)) {
                 $group = reset($groups);
                 $groupId = $group->getId();
 
-                $customer = $this->getRepositoryCustomer()->findOneBy(['email' => $email]);
+                $customer = $this->getRepositoryCustomer()->findOneBy(array('email' => $email));
                 $subscription = new Address();
 
                 $subscription->setIsCustomer($customer ? true : false);
@@ -226,7 +226,7 @@ class NewsletterCustomer extends Resource
      */
     private function getStreamGroups()
     {
-        if (!class_exists(\Shopware\Models\CustomerStream\CustomerStream::class)) {
+        if (!class_exists('Shopware\Models\CustomerStream\CustomerStream')) {
             return []; // customer streams are not supported
         }
 
@@ -250,45 +250,44 @@ class NewsletterCustomer extends Resource
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Models()
-            ->getRepository(Plugin::class)
-            ->findOneBy(['name' => 'Newsletter2Go']);
+            ->getRepository('Shopware\Models\Plugin\Plugin')
+            ->findOneBy(array('name' => 'Newsletter2Go'));
 
         return str_replace('.', '', $plugin->getVersion());
     }
 
     public function getCustomerFields()
     {
-        $fields = [
-            $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer'),
-            $this->createField('email', 'E-mail address'),
-            $this->createField('active', 'Active', 'Is customer active', 'Boolean'),
-            $this->createField('accountMode', 'Account mode', '', 'Integer'),
-            $this->createField('confirmationKey', 'Confirmation key', '', 'String'),
-            $this->createField('firstLogin', 'First login', '', 'Date'),
-            $this->createField('lastLogin', 'Last login', '', 'Date'),
-            $this->createField('groupKey', 'Customer group'),
-            $this->createField('languageId', 'Language', '', 'Integer'),
-            $this->createField('paymentPreset', 'Payment preset', '', 'Integer'),
-            $this->createField('shopId', 'Subshop Id.', '', 'Integer'),
-            $this->createField('paymentId', 'Price group Id.', '', 'Integer'),
-            $this->createField('internalComment', 'Internal Comment'),
-            $this->createField('referer'),
-            $this->createField('state'),
-            $this->createField('country'),
-            $this->createField('subscribed', '', '', 'Boolean'),
-            $this->createField('failedLogins', 'Failed logins', '', 'Integer'),
-            $this->createField('billing.company', 'Company'),
-            $this->createField('billing.department', 'Department'),
-            $this->createField('billing.salutation', 'Salutation'),
-            $this->createField('billing.firstName', 'Firstname'),
-            $this->createField('billing.lastName', 'Lastname'),
-            $this->createField('billing.street', 'Street'),
-            $this->createField('billing.zipCode', 'Zipcode'),
-            $this->createField('billing.city', 'City'),
-            $this->createField('billing.phone', 'Phone'),
-            $this->createField('billing.title', 'Title'),
-            $this->createField('birthday', 'Birthday', '', 'Date'),
-        ];
+        $fields = array();
+        $fields[] = $this->createField('id', 'Customer Id.', 'Unique customer identification number', 'Integer');
+        $fields[] = $this->createField('email', 'E-mail address');
+        $fields[] = $this->createField('active', 'Active', 'Is customer active', 'Boolean');
+        $fields[] = $this->createField('accountMode', 'Account mode', '', 'Integer');
+        $fields[] = $this->createField('confirmationKey', 'Confirmation key', '', 'String');
+        $fields[] = $this->createField('firstLogin', 'First login', '', 'Date');
+        $fields[] = $this->createField('lastLogin', 'Last login', '', 'Date');
+        $fields[] = $this->createField('groupKey', 'Customer group');
+        $fields[] = $this->createField('languageId', 'Language', '', 'Integer');
+        $fields[] = $this->createField('paymentPreset', 'Payment preset', '', 'Integer');
+        $fields[] = $this->createField('shopId', 'Subshop Id.', '', 'Integer');
+        $fields[] = $this->createField('paymentId', 'Price group Id.', '', 'Integer');
+        $fields[] = $this->createField('internalComment', 'Internal Comment');
+        $fields[] = $this->createField('referer');
+        $fields[] = $this->createField('state');
+        $fields[] = $this->createField('country');
+        $fields[] = $this->createField('subscribed', '', '', 'Boolean');
+        $fields[] = $this->createField('failedLogins', 'Failed logins', '', 'Integer');
+        $fields[] = $this->createField('billing.company', 'Company');
+        $fields[] = $this->createField('billing.department', 'Department');
+        $fields[] = $this->createField('billing.salutation', 'Salutation');
+        $fields[] = $this->createField('billing.firstName', 'Firstname');
+        $fields[] = $this->createField('billing.lastName', 'Lastname');
+        $fields[] = $this->createField('billing.street', 'Street');
+        $fields[] = $this->createField('billing.zipCode', 'Zipcode');
+        $fields[] = $this->createField('billing.city', 'City');
+        $fields[] = $this->createField('billing.phone', 'Phone');
+        $fields[] = $this->createField('billing.title', 'Title');
+        $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
         if (\Shopware::VERSION >= '5.2') {
             $fields[] = $this->createField('number', 'Customernumber');
@@ -308,7 +307,7 @@ class NewsletterCustomer extends Resource
      *
      * @return array
      */
-    public function getStreamList($group, array $emails = [], array $fields = [])
+    public function getStreamList($group, array $emails = array(), array $fields = array())
     {
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
@@ -317,7 +316,7 @@ class NewsletterCustomer extends Resource
 
         $builder = $this->getRepositoryCustomer()
             ->createQueryBuilder('customer')
-            ->innerJoin(Mapping::class, 'mapping', Expr\Join::INNER_JOIN, 'mapping.customerId = customer.id')
+            ->innerJoin('Shopware\Models\CustomerStream\Mapping', 'mapping', Expr\Join::INNER_JOIN, 'mapping.customerId = customer.id')
             ->where('customer.active = true');
 
         if ($group) {

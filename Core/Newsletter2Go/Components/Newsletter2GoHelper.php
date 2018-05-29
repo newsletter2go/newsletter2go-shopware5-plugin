@@ -33,7 +33,7 @@ class Newsletter2GoHelper
         $categoryName = '';
         $builder = $em->createQueryBuilder();
         $builder->select(array('categories'))
-            ->from(Category::class, 'categories', 'categories.id')
+            ->from('Shopware\Models\Category\Category', 'categories', 'categories.id')
             ->innerJoin('categories.articles', 'articles')
             ->where('articles.id = :articleId')
             ->setParameter('articleId', $articleId);

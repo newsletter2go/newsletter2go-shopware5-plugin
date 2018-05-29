@@ -5,7 +5,7 @@ use Shopware\Models\Newsletter2Go\Newsletter2Go;
 class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Backend_ExtJs
 {
     /**
-     *  @var \Shopware\Components\Model\ModelManager
+     * @var \Shopware\Components\Model\ModelManager
      */
     private $em;
 
@@ -15,8 +15,10 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      *
      * @throws \Exception
      */
-    public function __construct(Enlight_Controller_Request_Request $request, Enlight_Controller_Response_Response $response)
-    {
+    public function __construct(
+        Enlight_Controller_Request_Request $request,
+        Enlight_Controller_Response_Response $response
+    ) {
         parent::__construct($request, $response);
 
         $this->em = Shopware()->Models();
@@ -44,16 +46,18 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     {
         $data = array();
         /* @var Newsletter2Go[] $elements */
-        $elements = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)->findAll();
+        $elements = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findAll();
         foreach ($elements as $element) {
             $data[$element->getName()] = $element->getValue();
         }
 
         $data['baseUrl'] = Shopware()->Modules()->Core()->sRewriteLink();
-        $this->View()->assign(array(
-            'success' => true,
-            'data' => $data
-        ));
+        $this->View()->assign(
+            array(
+                'success' => true,
+                'data' => $data
+            )
+        );
     }
 
     /**
@@ -77,7 +81,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      */
     public function setTrackingAction()
     {
-        $trackOrders =  $this->getConfigParam('trackOrders');
+        $trackOrders = $this->getConfigParam('trackOrders');
         $trackOrders = $trackOrders ? 0 : 1;
         $this->saveConfigParam('trackOrders', $trackOrders);
         $this->em->flush();
@@ -86,7 +90,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
 
     /**
      * Generates random string with $length characters
-     * 
+     *
      * @param int $length
      * @return string
      */
@@ -118,7 +122,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         }
 
         /** @var Shopware\Models\User\Role $adminRole */
-        $adminRole = $this->em->getRepository(\Shopware\Models\User\Role::class)->findOneBy(array('admin' => 1));
+        $adminRole = $this->em->getRepository('Shopware\Models\User\Role')->findOneBy(array('admin' => 1));
         $apiUser->setLocaleId(0);
         $apiUser->setPassword(md5(time()));
         $apiUser->setRole($adminRole);
@@ -136,9 +140,15 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      */
     private function deleteApiUser()
     {
-        $user = $this->em->getRepository(\Shopware\Models\User\User::class)->findOneBy(array('username' => 'newsletter2goApiUser'));
-        $configUsername = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)->findOneBy(array('name' => 'apiUsername'));
-        $configApiKey = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)->findOneBy(array('name' => 'apiKey'));
+        $user = $this->em->getRepository('Shopware\Models\User\User')->findOneBy(
+            array('username' => 'newsletter2goApiUser')
+        );
+        $configUsername = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'apiUsername')
+        );
+        $configApiKey = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'apiKey')
+        );
 
         if ($user) {
             $this->em->remove($user);
@@ -158,15 +168,15 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     /**
      * Returns config value for $name, returns string if $name value exists,
      * otherwise it returns $default value.
-     * 
+     *
      * @param string $name
      * @param mixed $default
      * @return null | string
      */
     private function getConfigParam($name, $default = null)
     {
-        $value = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)
-                ->findOneBy(array('name' => $name));
+        $value = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')
+                          ->findOneBy(array('name' => $name));
 
         return $value ? $value->getValue() : $default;
     }
@@ -182,8 +192,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      */
     private function saveConfigParam($name, $value)
     {
-        $element = $this->em->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class)
-                ->findOneBy(array('name' => $name));
+        $element = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')
+                            ->findOneBy(array('name' => $name));
         if (!$element) {
             $element = new Newsletter2Go();
             $element->setName($name);
