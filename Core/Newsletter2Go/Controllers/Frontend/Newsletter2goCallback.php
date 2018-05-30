@@ -46,7 +46,7 @@ class Shopware_Controllers_Frontend_Newsletter2goCallback extends Enlight_Contro
         }
 
         header('Content-Type: application/json');
-        exit(json_encode(['success' => true]));
+        exit(json_encode(array('success' => true)));
 
     }
 }

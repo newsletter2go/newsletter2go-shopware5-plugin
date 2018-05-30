@@ -55,13 +55,15 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
             $this->resource->update($email, $params);
 
-            $this->View()->assign(['success' => true]);
+            $this->View()->assign(array('success' => true));
         } catch (\Exception $e) {
-            $this->View()->assign([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'errorcode' => \Shopware_Plugins_Core_Newsletter2Go_Bootstrap::ERRNO_PLUGIN_OTHER,
-            ]);
+            $this->View()->assign(
+                array(
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'errorcode' => \Shopware_Plugins_Core_Newsletter2Go_Bootstrap::ERRNO_PLUGIN_OTHER,
+                )
+            );
         }
     }
 
@@ -76,8 +78,8 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         $offset = $this->Request()->getParam('start', false);
         $limit = $this->Request()->getParam('limit', false);
         $group = $this->Request()->getParam('group', false);
-        $fields = $this->Request()->getParam('fields', []);
-        $emails = $this->Request()->getParam('emails', []);
+        $fields = $this->Request()->getParam('fields', array());
+        $emails = $this->Request()->getParam('emails', array());
         $subShopId = $this->Request()->getParam('subShopId', 0);
 
         $fields = (array)json_decode($fields, true);
@@ -88,10 +90,12 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
         if (strpos($group, 'campaign_') !== false) {
             $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails);
-        } else if (strpos($group, 'stream_') !== false) {
-            $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields);
         } else {
-            $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
+            if (strpos($group, 'stream_') !== false) {
+                $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields);
+            } else {
+                $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
+            }
         }
 
         return $result;
@@ -103,7 +107,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlySubscribers($group, array $emails = [])
+    private function getOnlySubscribers($group, array $emails = array())
     {
         $q = 'SELECT ma.email FROM s_campaigns_mailaddresses ma WHERE 1';
 
@@ -143,7 +147,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlyStreamCustomers($group, array $emails = [], array $fields = [])
+    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array())
     {
         return $this->resource->getStreamList($group, $emails, $fields);
     }

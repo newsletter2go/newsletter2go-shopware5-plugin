@@ -8,7 +8,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.1.18';
+    const VERSION = '4.1.19';
 
     /**
      * err-number, that should be pulled, whenever credentials are missing
@@ -110,7 +110,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->removeDatabase();
 
         $user = Shopware()->Models()
-            ->getRepository(\Shopware\Models\User\User::class)
+            ->getRepository('Shopware\Models\User\User')
             ->findOneBy(array('username' => 'newsletter2goApiUser'));
         if ($user) {
             Shopware()->Models()->remove($user);
@@ -174,7 +174,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
 
         $view->addTemplateDir($this->Path() . 'Views/');
 
-        $repository = Shopware()->Models()->getRepository(\Shopware\Models\Newsletter2Go\Newsletter2Go::class);
+        $repository = Shopware()->Models()->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go');
         $companyModel = $repository->findOneBy(array('name' => 'companyId'));
         $trackOrdersModel =  $repository->findOneBy(array('name' => 'trackOrders'));
         if (!$companyModel || !$trackOrdersModel) {
@@ -282,7 +282,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $dir = $this->Path();
         $container = Shopware()->Container();
         $container->get('loader')->registerNamespace('Shopware\Models\Newsletter2Go', $dir . 'Models/');
-        $container->get('modelannotations')->addPaths([$dir . 'Models/']);
+        $container->get('modelannotations')->addPaths(array($dir . 'Models/'));
     }
 
     private function executeSchemaAction($action)
@@ -291,7 +291,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $tool = new \Doctrine\ORM\Tools\SchemaTool($em);
 
         $classes = array(
-            $em->getClassMetadata(\Shopware\Models\Newsletter2Go\Newsletter2Go::class),
+            $em->getClassMetadata('Shopware\Models\Newsletter2Go\Newsletter2Go'),
         );
 
         try {
@@ -306,18 +306,18 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     private function createMenu()
     {
-        $node = $this->Menu()->findOneBy(['label' => 'Newsletter2Go']);
+        $node = $this->Menu()->findOneBy(array('label' => 'Newsletter2Go'));
 
         if ($node === null) {
-            $rootNode = $this->Menu()->findOneBy(['label' => 'Marketing']);
-            $this->createMenuItem([
+            $rootNode = $this->Menu()->findOneBy(array('label' => 'Marketing'));
+            $this->createMenuItem(array(
                 'label' => 'Newsletter2Go',
                 'class' => 'newsletter2go_image',
                 'active' => 1,
                 'parent' => $rootNode,
                 'controller' => 'Newsletter2go',
                 'action' => 'index',
-            ]);
+            ));
         }
     }
 

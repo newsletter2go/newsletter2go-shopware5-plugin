@@ -68,7 +68,7 @@ class ArticleMediaFiles extends Resource
     public function getArticleThumbnailSizes()
     {
         /** @var Album $album */
-        $album = $this->getManager()->getRepository(Album::class)->find(-1);
+        $album = $this->getManager()->getRepository('Shopware\Models\Media\Album')->find(-1);
 
         return $album->getSettings()->getThumbnailSize();
     }
@@ -85,7 +85,7 @@ class ArticleMediaFiles extends Resource
     {
         $builder = $this->getManager()->createQueryBuilder();
         $builder->select(array('images'))
-            ->from(Image::class, 'images')
+            ->from('Shopware\Models\Article\Image', 'images')
             ->innerJoin('images.article', 'article')
             ->where('article.id = :articleId')
             ->orderBy('images.position', 'ASC')
