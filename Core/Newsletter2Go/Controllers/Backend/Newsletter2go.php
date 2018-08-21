@@ -1,8 +1,10 @@
 <?php
 
 use Shopware\Models\Newsletter2Go\Newsletter2Go;
+use Newsletter2Go\Services\Environment;
+use Newsletter2Go\Services\Cryptography;
 
-class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Backend_ExtJs
+class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Backend_ExtJs implements Environment
 {
     /**
      * @var \Shopware\Components\Model\ModelManager
@@ -89,34 +91,16 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     }
 
     /**
-     * Generates random string with $length characters
-     *
-     * @param int $length
-     * @return string
-     */
-    private function generateRandomString($length = 40)
-    {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[mt_rand(0, $charactersLength - 1)];
-        }
-
-        return $randomString;
-    }
-
-    /**
      * @throws \Doctrine\ORM\ORMInvalidArgumentException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     private function createApiUser()
     {
         $apiUser = new \Shopware\Models\User\User();
-
         $apiUser->setName('newsletter2goApiUser');
         $apiUser->setUsername('newsletter2goApiUser');
-        $apiUser->setApiKey($this->generateRandomString());
+        $apiUser->setApiKey((new Cryptography(new Environment()))->generateRandomString());
+
         if (method_exists($apiUser, 'setEncoder')) {
             $apiUser->setEncoder('md5');
         }
