@@ -4,7 +4,7 @@ use Shopware\Models\Newsletter2Go\Newsletter2Go;
 use Newsletter2Go\Services\Environment;
 use Newsletter2Go\Services\Cryptography;
 
-class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Backend_ExtJs implements Environment
+class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Backend_ExtJs
 {
     /**
      * @var \Shopware\Components\Model\ModelManager
