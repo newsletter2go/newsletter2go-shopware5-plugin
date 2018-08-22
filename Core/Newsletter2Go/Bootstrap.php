@@ -131,6 +131,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->registerCustomModels();
         $this->Application()->Loader()->registerNamespace('Newsletter2Go\Components', $this->Path() . 'Components/');
         $this->Application()->Loader()->registerNamespace('Shopware\Components', $this->Path() . 'Components/');
+        $this->Application()->Loader()->registerNamespace('Newsletter2Go\Services', $this->Path() . 'Services/');
     }
 
     /**
