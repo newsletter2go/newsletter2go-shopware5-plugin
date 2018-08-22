@@ -33,7 +33,7 @@ class Environment
      */
     public function getEnv($environmentVariable, $defaultValue = null)
     {
-        if (null === $environmentName || !isset($_ENV[$environmentVariable])) {
+        if (null === $environmentVariable || !isset($_ENV[$environmentVariable])) {
             return $defaultValue;
         }
 
