@@ -97,7 +97,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     private function createApiUser()
     {   
         $enviroment = new Environment();
-		$cryptography = new Cryptography();
+	$cryptography = new Cryptography();
+	    
         $apiUser = new \Shopware\Models\User\User();
         $apiUser->setName('newsletter2goApiUser');
         $apiUser->setUsername('newsletter2goApiUser');
