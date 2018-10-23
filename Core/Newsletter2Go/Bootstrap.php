@@ -8,7 +8,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.1.21';
+    const VERSION = '4.1.22';
 
     /**
      * err-number, that should be pulled, whenever credentials are missing
@@ -73,8 +73,8 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             'copyright'   => 'Copyright © ' . date('Y') . ', Newsletter2Go GmbH',
             'supplier'    => 'Newsletter2Go GmbH',
             'description' => 'Adds email marketing functionality to your E-commerce platform. Easily synchronize your contacts and send product newsletters',
-            'support'     => 'https://www.newsletter2go.de/hilfe/',
-            'link'        => 'http://www.newsletter2go.de',
+            'support'     => 'https://www.newsletter2go.com/help/',
+            'link'        => 'https://www.newsletter2go.com',
         );
     }
 

@@ -279,9 +279,9 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('failedLogins', 'Failed logins', '', 'Integer');
         $fields[] = $this->createField('billing.company', 'Company');
         $fields[] = $this->createField('billing.department', 'Department');
-        $fields[] = $this->createField('billing.salutation', 'Salutation');
-        $fields[] = $this->createField('billing.firstName', 'Firstname');
-        $fields[] = $this->createField('billing.lastName', 'Lastname');
+        $fields[] = $this->createField('billing.salutation', 'Billing Salutation');
+        $fields[] = $this->createField('billing.firstName', 'Billing Firstname');
+        $fields[] = $this->createField('billing.lastName', 'Billing Lastname');
         $fields[] = $this->createField('billing.street', 'Street');
         $fields[] = $this->createField('billing.zipCode', 'Zipcode');
         $fields[] = $this->createField('billing.city', 'City');
@@ -290,9 +290,12 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
         if (\Shopware::VERSION >= '5.2') {
-            $fields[] = $this->createField('number', 'Customernumber');
+            $fields[] = $this->createField('number', 'Customer number');
+            $fields[] = $this->createField('salutation', 'Customer salutation');
+            $fields[] = $this->createField('firstname', 'Customer firstname');
+            $fields[] = $this->createField('lastname', 'Customer lastname');
         } else {
-            $fields[] = $this->createField('billing.number', 'Customernumber');
+            $fields[] = $this->createField('billing.number', 'Customer number');
         }
 
         return $fields;
