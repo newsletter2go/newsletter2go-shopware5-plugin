@@ -177,12 +177,14 @@ class NewsletterCustomer extends Resource
     public function getNewsletterGroups()
     {
         $this->checkPrivilege('read');
+        $customerGroups = [];
+        $customerGroups[] = $this->getCustomerGroups();
+        $customerGroups[] = $this->getCampaignGroups();
+        if (\Shopware::VERSION >= '5.3') {
+            $customerGroups[] = $this->getStreamGroups();
+        }
 
-        return array_merge(
-            $this->getCustomerGroups(),
-            $this->getCampaignGroups(),
-            $this->getStreamGroups()
-        );
+        return call_user_func_array('array_merge', $customerGroups);
     }
 
     /**
