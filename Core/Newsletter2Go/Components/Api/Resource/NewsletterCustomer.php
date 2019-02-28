@@ -364,7 +364,7 @@ class NewsletterCustomer extends Resource
         $subscribers = null;
         if (in_array('subscribed', $fields, true)) {
             $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = array_fill_keys($emails, true);
+            $subscribers = array_fill_keys(array_column($emails, 'email'), true);
         }
 
         $country = $this->getCountry();
