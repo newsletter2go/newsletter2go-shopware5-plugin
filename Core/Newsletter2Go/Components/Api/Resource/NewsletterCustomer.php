@@ -310,7 +310,7 @@ class NewsletterCustomer extends Resource
      *
      * @return array
      */
-    public function getStreamList($group, array $emails = array(), array $fields = array())
+    public function getStreamList($group, array $emails = array(), array $fields = array(), $limit = NULL, $offset = NULL)
     {
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
@@ -335,6 +335,14 @@ class NewsletterCustomer extends Resource
 
         if (!empty($emails)) {
             $builder->andWhere("customer.email IN ('" . implode("','", $emails) . "')");
+        }
+
+        if ($offset) {
+            $builder->setFirstResult($offset);
+        }
+
+        if ($limit) {
+            $builder->setMaxResults($limit);
         }
 
         $builder->select($selectFields);
