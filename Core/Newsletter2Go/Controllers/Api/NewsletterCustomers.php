@@ -89,10 +89,10 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         }
 
         if (strpos($group, 'campaign_') !== false) {
-            $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails);
+            $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails,  $limit, $offset);
         } else {
             if (strpos($group, 'stream_') !== false) {
-                $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields);
+                $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields, $limit, $offset);
             } else {
                 $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
             }
@@ -107,7 +107,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlySubscribers($group, array $emails = array())
+    private function getOnlySubscribers($group, array $emails = array(),  $limit = null, $offset = null)
     {
         $q = 'SELECT ma.email FROM s_campaigns_mailaddresses ma WHERE 1';
 
@@ -117,6 +117,14 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
 
         if ($emails) {
             $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
+        }
+
+        if ($limit) {
+            $q .= "LIMIT = $limit";
+        }
+
+        if ($offset) {
+            $q .= "OFFSET = $offset";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
@@ -147,8 +155,8 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array())
+    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit, $offset)
     {
-        return $this->resource->getStreamList($group, $emails, $fields);
+        return $this->resource->getStreamList($group, $emails, $fields, $limit, $offset);
     }
 }
