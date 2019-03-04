@@ -89,10 +89,10 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
         }
 
         if (strpos($group, 'campaign_') !== false) {
-            $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails,  $limit, $offset);
+            $result = $this->getOnlySubscribers(str_replace('campaign_', '', $group), $emails,  $limit = null, $offset = null);
         } else {
             if (strpos($group, 'stream_') !== false) {
-                $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $limit = NULL, $offset = NULL);
+                $result = $this->getOnlyStreamCustomers(str_replace('stream_', '', $group), $emails, $fields, $limit = null, $offset = null);
             } else {
                 $result = $this->resource->getList($subscribed, $offset, $limit, $group, $fields, $emails, $subShopId);
             }
@@ -107,7 +107,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlySubscribers($group, array $emails = array(),  $limit = NULL, $offset = NULL)
+    private function getOnlySubscribers($group, array $emails = array(),  $limit = null, $offset = null)
     {
         $q = 'SELECT ma.email FROM s_campaigns_mailaddresses ma WHERE 1';
 
@@ -155,8 +155,8 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit = NULL, $offset = NULL)
+    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit = null, $offset = null)
     {
-        return $this->resource->getStreamList($group, $emails, $fields, $limit = NULL, $offset = NULL);
+        return $this->resource->getStreamList($group, $emails, $fields, $limit = null, $offset = null);
     }
 }
