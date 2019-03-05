@@ -366,16 +366,20 @@ class NewsletterCustomer extends Resource
      */
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
-        $subscribers = null;
-        if (in_array('subscribed', $fields, true)) {
-            $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = array_fill_keys(array_column($emails, 'email'), true);
-        }
-
+        $subscriber = null;
         $country = $this->getCountry();
         $state = $this->getState();
 
         foreach ($customers as &$customer) {
+            if (in_array('subscribed', $fields, true)) {
+                $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email = '{$customer['email']}' LIMIT 1";
+                $subscriber = Shopware()->Db()->fetchRow($sql);
+            }
+
+            if (isset($subscriber)) {
+                $customer['subscribed'] = true;
+            }
+
             /** @var array $customerBilling */
             $customerBilling = $customer[$billingAddressField];
             unset($customer[$billingAddressField]);
@@ -394,10 +398,6 @@ class NewsletterCustomer extends Resource
                 }
             }
             unset($defaultBillingAddress);
-
-            if (is_array($subscribers)) {
-                $customer['subscribed'] = isset($subscribers[$customer['email']]);
-            }
 
             if (in_array('billing.salutation', $fields, true)) {
                 $salutation = strtolower($customerBilling['salutation']);
