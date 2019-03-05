@@ -337,12 +337,9 @@ class NewsletterCustomer extends Resource
             $builder->andWhere("customer.email IN ('" . implode("','", $emails) . "')");
         }
 
-        if ($offset) {
-            $builder->setFirstResult($offset);
-        }
-
-        if ($limit) {
-            $builder->setMaxResults($limit);
+        if ($offset !== null && $limit) {
+            $builder->setFirstResult($offset)
+                    ->setMaxResults($limit);
         }
 
         $builder->select($selectFields);

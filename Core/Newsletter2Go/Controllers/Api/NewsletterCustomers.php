@@ -107,7 +107,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlySubscribers($group, array $emails = array(),  $limit = null, $offset = null)
+    private function getOnlySubscribers($group, array $emails = array(), $limit = null, $offset = null)
     {
         $q = 'SELECT ma.email FROM s_campaigns_mailaddresses ma WHERE 1';
 
@@ -119,12 +119,12 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
             $q .= " AND ma.email IN ('" . implode("','", $emails) . "')";
         }
 
-        if ($limit) {
-            $q .= "LIMIT = $limit";
+        if (isset($limit)) {
+            $q .= " LIMIT $limit";
         }
 
-        if ($offset) {
-            $q .= "OFFSET = $offset";
+        if (isset($offset)) {
+            $q .= " OFFSET $offset";
         }
 
         $subscribers = Shopware()->Db()->fetchAll($q);
@@ -152,10 +152,12 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      * @param string $group
      * @param string[] $emails
      * @param string[] $fields
+     * @param integer $limit
+     * @param integer $offset
      *
      * @return array
      */
-    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit, $offset)
+    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit = null, $offset = null)
     {
         return $this->resource->getStreamList($group, $emails, $fields, $limit, $offset);
     }
