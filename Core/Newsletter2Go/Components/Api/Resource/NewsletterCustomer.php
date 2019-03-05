@@ -55,8 +55,8 @@ class NewsletterCustomer extends Resource
      */
     public function getList(
         $subscribed = false,
-        $offset = false,
-        $limit = false,
+        $offset = null,
+        $limit = null,
         $group = '',
         array $fields = array(),
         array $emails = array(),
@@ -100,7 +100,7 @@ class NewsletterCustomer extends Resource
 
         $builder->select($selectFields);
 
-        if ($offset !== false && $limit) {
+        if ($offset !== null && $limit) {
             $builder->setFirstResult($offset)
                 ->setMaxResults($limit);
         }

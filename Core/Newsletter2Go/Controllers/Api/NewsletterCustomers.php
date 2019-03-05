@@ -75,8 +75,8 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
     private function getCustomers()
     {
         $subscribed = $this->Request()->getParam('subscribed', false);
-        $offset = $this->Request()->getParam('start', false);
-        $limit = $this->Request()->getParam('limit', false);
+        $offset = $this->Request()->getParam('start', null);
+        $limit = $this->Request()->getParam('limit', null);
         $group = $this->Request()->getParam('group', false);
         $fields = $this->Request()->getParam('fields', array());
         $emails = $this->Request()->getParam('emails', array());
