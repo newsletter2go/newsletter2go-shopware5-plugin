@@ -390,7 +390,7 @@ class NewsletterCustomer extends Resource
         $country = $this->getCountry();
         $state = $this->getState();
 
-        $subscriberMails = [];
+        $subscriberMails = array();
 
         $fillSubscribeField = in_array('subscribed', $fields, true);
 
