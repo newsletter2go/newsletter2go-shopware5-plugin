@@ -374,10 +374,10 @@ class NewsletterCustomer extends Resource
             if (in_array('subscribed', $fields, true)) {
                 $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email = '{$customer['email']}' LIMIT 1";
                 $subscriber = Shopware()->Db()->fetchRow($sql);
-            }
-
-            if (isset($subscriber)) {
-                $customer['subscribed'] = true;
+                
+                if (isset($subscriber)) {
+                    $customer['subscribed'] = true;
+                }
             }
 
             /** @var array $customerBilling */
