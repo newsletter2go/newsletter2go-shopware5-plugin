@@ -70,8 +70,8 @@ class NewsletterCustomer extends Resource
         $arrangedFields = $this->arrangeFields($fields);
 
         $builder = $this->getRepositoryCustomer()
-            ->createQueryBuilder('customer')
-            ->where('customer.active = true');
+                        ->createQueryBuilder('customer')
+                        ->where('customer.active = true');
 
         $selectFields[] = 'PARTIAL customer.{' . implode(',', $arrangedFields['customer']) . '}';
         if (!empty($arrangedFields['billing'])) {
@@ -102,7 +102,7 @@ class NewsletterCustomer extends Resource
 
         if ($offset !== null && $limit) {
             $builder->setFirstResult($offset)
-                ->setMaxResults($limit);
+                    ->setMaxResults($limit);
         }
 
         $query = $builder->getQuery();
@@ -190,7 +190,8 @@ class NewsletterCustomer extends Resource
      */
     private function getCustomerGroups()
     {
-        return Shopware()->Db()->fetchAll("
+        return Shopware()->Db()->fetchAll(
+            "
             SELECT groupkey AS 'id',
                    description AS 'name',
                    description AS 'description',
@@ -200,7 +201,8 @@ class NewsletterCustomer extends Resource
                        WHERE s_user.customergroup = s_core_customergroups.groupkey
                    ) AS 'count'
             FROM s_core_customergroups
-        ");
+        "
+        );
     }
 
     /**
@@ -208,7 +210,8 @@ class NewsletterCustomer extends Resource
      */
     private function getCampaignGroups()
     {
-        return Shopware()->Db()->fetchAll("
+        return Shopware()->Db()->fetchAll(
+            "
             SELECT CONCAT('campaign_', id) AS 'id',
                    name AS 'name',
                    NULL AS 'description',
@@ -218,7 +221,8 @@ class NewsletterCustomer extends Resource
                        WHERE s_campaigns_mailaddresses.groupID = s_campaigns_groups.id
                    ) AS 'count'
             FROM s_campaigns_groups
-        ");
+        "
+        );
     }
 
     /**
@@ -230,13 +234,15 @@ class NewsletterCustomer extends Resource
             return array(); // customer streams are not supported
         }
 
-        return Shopware()->Db()->fetchAll("
+        return Shopware()->Db()->fetchAll(
+            "
             SELECT CONCAT('stream_', id) AS 'id',
                    name AS 'name',
                    description AS 'description',
                    0 AS 'count'
             FROM s_customer_streams
-        ");
+        "
+        );
     }
 
     /**
@@ -250,8 +256,8 @@ class NewsletterCustomer extends Resource
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Models()
-            ->getRepository('Shopware\Models\Plugin\Plugin')
-            ->findOneBy(array('name' => 'Newsletter2Go'));
+                            ->getRepository('Shopware\Models\Plugin\Plugin')
+                            ->findOneBy(array('name' => 'Newsletter2Go'));
 
         return str_replace('.', '', $plugin->getVersion());
     }
@@ -310,17 +316,27 @@ class NewsletterCustomer extends Resource
      *
      * @return array
      */
-    public function getStreamList($group, array $emails = array(), array $fields = array(), $limit = null, $offset = null)
-    {
+    public function getStreamList(
+        $group,
+        array $emails = array(),
+        array $fields = array(),
+        $limit = null,
+        $offset = null
+    ) {
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
 
         $builder = $this->getRepositoryCustomer()
-            ->createQueryBuilder('customer')
-            ->innerJoin('Shopware\Models\CustomerStream\Mapping', 'mapping', Expr\Join::INNER_JOIN, 'mapping.customerId = customer.id')
-            ->where('customer.active = true');
+                        ->createQueryBuilder('customer')
+                        ->innerJoin(
+                            'Shopware\Models\CustomerStream\Mapping',
+                            'mapping',
+                            Expr\Join::INNER_JOIN,
+                            'mapping.customerId = customer.id'
+                        )
+                        ->where('customer.active = true');
 
         if ($group) {
             $builder->andWhere('mapping.streamId = ' . $group);
@@ -366,16 +382,34 @@ class NewsletterCustomer extends Resource
      */
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
-        $subscribers = null;
-        if (in_array('subscribed', $fields, true)) {
-            $emails = Shopware()->Db()->fetchAll('SELECT email FROM s_campaigns_mailaddresses');
-            $subscribers = array_fill_keys(array_column($emails, 'email'), true);
+
+        if(empty($customers)){
+            return $customers;
         }
 
         $country = $this->getCountry();
         $state = $this->getState();
 
+        $subscriberMails = [];
+
+        $fillSubscribeField = in_array('subscribed', $fields, true);
+
+        //we need all subscribers to determine, which customers are subscribed
+        if ($fillSubscribeField) {
+            $emails = array_column($customers, 'email');
+            $placeholders = implode(', ', array_fill(0, count($emails), '?'));
+            $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email IN ($placeholders)";
+            $subscribers = Shopware()->Db()->fetchAll($sql, $emails);
+            if (count($subscribers) > 0) {
+                $subscriberMails = array_column($subscribers, 'email');
+            }
+        }
+
         foreach ($customers as &$customer) {
+            if ($fillSubscribeField) {
+                $customer['subscribed'] = in_array($customer['email'], $subscriberMails);
+            }
+
             /** @var array $customerBilling */
             $customerBilling = $customer[$billingAddressField];
             unset($customer[$billingAddressField]);
@@ -395,17 +429,15 @@ class NewsletterCustomer extends Resource
             }
             unset($defaultBillingAddress);
 
-            if (is_array($subscribers)) {
-                $customer['subscribed'] = isset($subscribers[$customer['email']]);
-            }
-
             if (in_array('billing.salutation', $fields, true)) {
                 $salutation = strtolower($customerBilling['salutation']);
 
                 if ($salutation === 'mr') {
                     $customerBilling['salutation'] = 'm';
-                } else if ($salutation === 'ms') {
-                    $customerBilling['salutation'] = 'f';
+                } else {
+                    if ($salutation === 'ms') {
+                        $customerBilling['salutation'] = 'f';
+                    }
                 }
             }
 
@@ -414,8 +446,10 @@ class NewsletterCustomer extends Resource
                 $birthday = null;
                 if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
                     $birthday = $customer['birthday'];
-                } else if ($customerBilling['birthday'] !== null) {
-                    $birthday = $customerBilling['birthday'];
+                } else {
+                    if ($customerBilling['birthday'] !== null) {
+                        $birthday = $customerBilling['birthday'];
+                    }
                 }
 
                 $customer['birthday'] = $birthday ? $birthday->format('Y-m-d') : null;
