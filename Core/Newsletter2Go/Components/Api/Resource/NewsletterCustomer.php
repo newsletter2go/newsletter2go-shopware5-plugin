@@ -70,8 +70,8 @@ class NewsletterCustomer extends Resource
         $arrangedFields = $this->arrangeFields($fields);
 
         $builder = $this->getRepositoryCustomer()
-            ->createQueryBuilder('customer')
-            ->where('customer.active = true');
+                        ->createQueryBuilder('customer')
+                        ->where('customer.active = true');
 
         $selectFields[] = 'PARTIAL customer.{' . implode(',', $arrangedFields['customer']) . '}';
         if (!empty($arrangedFields['billing'])) {
@@ -102,7 +102,7 @@ class NewsletterCustomer extends Resource
 
         if ($offset !== null && $limit) {
             $builder->setFirstResult($offset)
-                ->setMaxResults($limit);
+                    ->setMaxResults($limit);
         }
 
         $query = $builder->getQuery();
@@ -256,8 +256,8 @@ class NewsletterCustomer extends Resource
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Models()
-            ->getRepository('Shopware\Models\Plugin\Plugin')
-            ->findOneBy(array('name' => 'Newsletter2Go'));
+                            ->getRepository('Shopware\Models\Plugin\Plugin')
+                            ->findOneBy(array('name' => 'Newsletter2Go'));
 
         return str_replace('.', '', $plugin->getVersion());
     }
@@ -329,14 +329,14 @@ class NewsletterCustomer extends Resource
         $arrangedFields = $this->arrangeFields($fields);
 
         $builder = $this->getRepositoryCustomer()
-            ->createQueryBuilder('customer')
-            ->innerJoin(
-                'Shopware\Models\CustomerStream\Mapping',
-                'mapping',
-                Expr\Join::INNER_JOIN,
-                'mapping.customerId = customer.id'
-            )
-            ->where('customer.active = true');
+                        ->createQueryBuilder('customer')
+                        ->innerJoin(
+                            'Shopware\Models\CustomerStream\Mapping',
+                            'mapping',
+                            Expr\Join::INNER_JOIN,
+                            'mapping.customerId = customer.id'
+                        )
+                        ->where('customer.active = true');
 
         if ($group) {
             $builder->andWhere('mapping.streamId = ' . $group);
@@ -355,7 +355,7 @@ class NewsletterCustomer extends Resource
 
         if ($offset !== null && $limit) {
             $builder->setFirstResult($offset)
-                ->setMaxResults($limit);
+                    ->setMaxResults($limit);
         }
 
         $builder->select($selectFields);
@@ -382,7 +382,11 @@ class NewsletterCustomer extends Resource
      */
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
-        $subscriber = null;
+
+        if(empty($customers)){
+            return $customers;
+        }
+
         $country = $this->getCountry();
         $state = $this->getState();
 
@@ -403,9 +407,7 @@ class NewsletterCustomer extends Resource
 
         foreach ($customers as &$customer) {
             if ($fillSubscribeField) {
-                if (in_array($customer['email'], $subscriberMails)) {
-                    $customer['subscribed'] = true;
-                }
+                $customer['subscribed'] = in_array($customer['email'], $subscriberMails);
             }
 
             /** @var array $customerBilling */
