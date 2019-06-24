@@ -2,10 +2,10 @@
 
 namespace Shopware\Components\Api\Resource;
 
-use Shopware\Models\CustomerStream\Mapping;
+use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
+use Shopware\Bundle\AttributeBundle\Service\CrudService;
 use Shopware\Models\Newsletter\Address;
 use Doctrine\ORM\Query\Expr;
-use Shopware\Models\Newsletter\Group;
 use Shopware\Models\Plugin\Plugin;
 
 /**
@@ -387,6 +387,12 @@ class NewsletterCustomer extends Resource
             return $customers;
         }
 
+        $customerAttributeDataLoader = Shopware()->Container()->get('shopware_attribute.data_loader');
+
+        /** @var CrudService $crudService */
+        $crudService = Shopware()->Container()->get('shopware_attribute.crud_service');
+        $customerCustomAttributesList = $crudService->getList('s_user_attributes');
+
         $country = $this->getCountry();
         $state = $this->getState();
 
@@ -474,9 +480,36 @@ class NewsletterCustomer extends Resource
             }
 
             $customer['billing'] = $customerBilling;
+
+            $currentCustomerAttributes = $customerAttributeDataLoader->load('s_user_attributes', $customer['id']);
+            $customer['customFields'] = $this->getCustomFields($customerCustomAttributesList, $currentCustomerAttributes);
+
         }
 
         return $customers;
+    }
+
+    private function getCustomFields($customerCustomAttributesList, $customerAttributes)
+    {
+        $fields = [];
+        /** @var ConfigurationStruct $attribute */
+        foreach ($customerCustomAttributesList as $attribute) {
+
+            $columnName = $attribute->getColumnName();
+
+            if (in_array($columnName, ['id', 'userID'])) {
+                continue;
+            }
+
+            if (isset($customerAttributes[$columnName])) {
+                $fields[$columnName] =  $customerAttributes[$columnName];
+            } else {
+                $fields[$columnName] = null;
+            }
+
+        }
+
+        return $fields;
     }
 
     /**
