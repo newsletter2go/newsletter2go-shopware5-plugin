@@ -357,6 +357,12 @@ class NewsletterCustomer extends Resource
             $selectFields[] = 'PARTIAL billing.{' . implode(',', $arrangedFields['billing']) . '}';
         }
 
+        if (!empty($arrangedFields['attribute'])) {
+            $arrangedFields['attribute'][] = 'id';
+            $builder->leftJoin('customer.attribute' , 'attribute');
+            $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
+        }
+
         if (!empty($emails)) {
             $builder->andWhere("customer.email IN ('" . implode("','", $emails) . "')");
         }
