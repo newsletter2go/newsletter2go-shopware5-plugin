@@ -512,7 +512,7 @@ class NewsletterCustomer extends Resource
                     'boolean', 'date', 'integer', 'double', 'datetime'
                 ]) ? ucfirst($attribute->getColumnType()) : 'String';
 
-                $fields[] =  $this->createField('attribute.' . $columnName, $columnName, $columnName, $type);
+                $fields[] =  $this->createField('attribute.' . $columnName, $attribute->getLabel(), $attribute->getLabel(), $type);
             }
 
             if (is_null($fields)) {
