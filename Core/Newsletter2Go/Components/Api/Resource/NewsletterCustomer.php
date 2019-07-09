@@ -2,10 +2,8 @@
 
 namespace Shopware\Components\Api\Resource;
 
-use Shopware\Models\CustomerStream\Mapping;
 use Shopware\Models\Newsletter\Address;
 use Doctrine\ORM\Query\Expr;
-use Shopware\Models\Newsletter\Group;
 use Shopware\Models\Plugin\Plugin;
 
 /**
@@ -78,6 +76,12 @@ class NewsletterCustomer extends Resource
             $arrangedFields['billing'][] = 'id';
             $builder->leftJoin('customer.' . $billingAddressField, 'billing');
             $selectFields[] = 'PARTIAL billing.{' . implode(',', $arrangedFields['billing']) . '}';
+        }
+
+        if (!empty($arrangedFields['attribute'])) {
+            $arrangedFields['attribute'][] = 'id';
+            $builder->leftJoin('customer.attribute' , 'attribute');
+            $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
         }
 
         if ($subscribed) {
@@ -300,6 +304,10 @@ class NewsletterCustomer extends Resource
             $fields[] = $this->createField('salutation', 'Customer salutation');
             $fields[] = $this->createField('firstname', 'Customer firstname');
             $fields[] = $this->createField('lastname', 'Customer lastname');
+
+            $customFields = $this->getCustomFields();
+            $fields = array_merge($fields, $customFields);
+
         } else {
             $fields[] = $this->createField('billing.number', 'Customer number');
         }
@@ -347,6 +355,12 @@ class NewsletterCustomer extends Resource
             $arrangedFields['billing'][] = 'id';
             $builder->leftJoin('customer.' . $billingAddressField, 'billing');
             $selectFields[] = 'PARTIAL billing.{' . implode(',', $arrangedFields['billing']) . '}';
+        }
+
+        if (!empty($arrangedFields['attribute'])) {
+            $arrangedFields['attribute'][] = 'id';
+            $builder->leftJoin('customer.attribute' , 'attribute');
+            $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
         }
 
         if (!empty($emails)) {
@@ -474,9 +488,82 @@ class NewsletterCustomer extends Resource
             }
 
             $customer['billing'] = $customerBilling;
+
+            if (\Shopware::VERSION >= '5.2') {
+                $customer['attribute'] = $this->getCustomerCustomFields($customer);
+            }
+
         }
 
         return $customers;
+    }
+
+    private function getCustomFields()
+    {
+        $fields = [];
+
+        try {
+            $crudService = Shopware()->Container()->get('shopware_attribute.crud_service');
+            $customerCustomAttributesList = $crudService->getList('s_user_attributes');
+
+            foreach ($customerCustomAttributesList as $attribute) {
+
+                $columnName = $attribute->getColumnName();
+
+                if (in_array($columnName, ['id', 'userID'])) {
+                    continue;
+                }
+
+                $type = in_array($attribute->getColumnType(), [
+                    'boolean', 'date', 'integer', 'double', 'datetime'
+                ]) ? ucfirst($attribute->getColumnType()) : 'String';
+
+                $fields[] =  $this->createField('attribute.' . $columnName, $attribute->getLabel(), $attribute->getLabel(), $type);
+            }
+
+            if (is_null($fields)) {
+                $fields = [];
+            }
+
+        } catch (\Exception $exception) {
+
+        }
+
+        return $fields;
+    }
+
+    private function getCustomerCustomFields($customer)
+    {
+        $fields = [];
+        $availableCustomFields = $this->getCustomFields();
+
+        if (empty($availableCustomFields) || !is_array($availableCustomFields)) {
+            return $fields;
+        }
+
+        foreach ($availableCustomFields as $field) {
+            $fieldParts = explode('.', $field['id']);
+            $fieldName = $fieldParts[1];
+            if (isset($customer['attribute'][$fieldName])) {
+                $customerField = $customer['attribute'][$fieldParts[1]];
+
+                switch ($field['type']) {
+                    case 'Date':
+                        $fields[$fieldName] = $customerField->format('Y-m-d');
+                        break;
+                    case 'Datetime';
+                        $fields[$fieldName] = $customerField->format('Y-m-d H:i:s');
+                        break;
+                    default:
+                        $fields[$fieldName] = $customerField;
+                }
+
+            } else {
+                $fields[$fieldParts[1]] = null;
+            }
+        }
+
+        return $fields;
     }
 
     /**
@@ -533,6 +620,7 @@ class NewsletterCustomer extends Resource
             'customer' => array('id'),
             'order' => array(),
             'country' => array(),
+            'attribute' => array()
         );
         $useAddressModel = $this->useAddressModel();
 
@@ -557,6 +645,11 @@ class NewsletterCustomer extends Resource
                         $result['customer'][] = $field;
                     } else {
                         $result['billing'][] = $field;
+                    }
+                    break;
+                case 'attribute':
+                    if (\Shopware::VERSION >= '5.2') {
+                        $result['attribute'][] = $parts[1];
                     }
                     break;
                 default:
