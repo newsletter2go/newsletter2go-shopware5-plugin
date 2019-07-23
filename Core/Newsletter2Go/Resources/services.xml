@@ -1,0 +1,6 @@
+<!-- Register TemplateRegistration subscriber -->
+<service id="newsletter2go.subscriber.cart_subscriber" class="Newsletter2Go\Subscriber\CartEventSubscriber">
+    <!--<argument>%swag_plugin_system.plugin_dir%</argument>-->
+    <!--<argument type="service" id="template"/>-->
+    <tag name="shopware.event_subscriber"/>
+</service>
