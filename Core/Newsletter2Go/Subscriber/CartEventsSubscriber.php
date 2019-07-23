@@ -19,11 +19,11 @@ class CartEventsSubscriber implements SubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            'Enlight_Controller_Action_PostDispatchSecure_Backend_Article' => 'onBackendArticle'
+            'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onCheckout'
         ];
     }
 
-    public function onAddArticle(\Enlight_Event_EventArgs $arguments)
+    public function onCheckout(\Enlight_Event_EventArgs $arguments)
     {
 
         // filter Events then if relevant get the payload
