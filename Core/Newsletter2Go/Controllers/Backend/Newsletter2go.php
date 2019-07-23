@@ -91,6 +91,20 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     }
 
     /**
+     * Saves shopping cart tracking in database
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function setCartTrackingAction()
+    {
+        $trackCarts = $this->getConfigParam('trackCarts');
+        $trackCarts = $trackCarts ? 0 : 1;
+        $this->saveConfigParam('trackCarts', $trackCarts);
+        $this->em->flush();
+        $this->getDataAction();
+    }
+
+    /**
      * @throws \Doctrine\ORM\ORMInvalidArgumentException
      * @throws \Doctrine\ORM\OptimisticLockException
      */

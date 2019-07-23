@@ -26,6 +26,9 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             },
             'tracking-nl2go': {
                 tracking: me.onTracking
+            },
+            'cart-tracking-nl2go': {
+                cartTracking: me.onCartTracking
             }
         });
 
@@ -97,6 +100,19 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 var result = Ext.decode(response.responseText);
                 message = Ext.String.format(result.message, '');
                 Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
+            }
+        });
+    },
+    onCartTracking: function () {
+        // TODO: enable feature
+        Ext.Ajax.request( {
+            url: '{url controller="Newsletter2go" action="setCartTracking"}',
+            method: 'POST',
+            success: function(response) {
+                // TODO: todo
+            },
+            failure: function(response) {
+
             }
         });
     }
