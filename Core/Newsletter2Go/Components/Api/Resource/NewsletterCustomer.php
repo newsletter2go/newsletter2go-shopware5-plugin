@@ -325,6 +325,7 @@ class NewsletterCustomer extends Resource
      * @return array
      */
     public function getStreamList(
+        $subscribed = false,
         $group,
         array $emails = array(),
         array $fields = array(),
@@ -361,6 +362,12 @@ class NewsletterCustomer extends Resource
             $arrangedFields['attribute'][] = 'id';
             $builder->leftJoin('customer.attribute' , 'attribute');
             $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
+        }
+
+        if ($subscribed) {
+            $builder->andWhere(
+                'customer.email IN (SELECT address.email FROM Shopware\Models\Newsletter\Address address)'
+            );
         }
 
         if (!empty($emails)) {

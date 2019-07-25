@@ -61,7 +61,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
     onConnect: function (record) {
         var n2gUrl = 'https://ui.newsletter2go.com/integrations/connect/SW/';
         var params = [
-            'version=4116',
+            'version=4126',
             'username=' + Ext.ComponentQuery.query('[name=shopUsername]')[0].value,
             'password=' + Ext.ComponentQuery.query('[name=shopApiKey]')[0].value,
             'language=' + Ext.editorLang.split('_')[0],
