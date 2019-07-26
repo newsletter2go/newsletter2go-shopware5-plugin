@@ -329,7 +329,8 @@ class NewsletterCustomer extends Resource
         array $emails = array(),
         array $fields = array(),
         $limit = null,
-        $offset = null
+        $offset = null,
+        $subscribed = false
     ) {
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
@@ -361,6 +362,12 @@ class NewsletterCustomer extends Resource
             $arrangedFields['attribute'][] = 'id';
             $builder->leftJoin('customer.attribute' , 'attribute');
             $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
+        }
+
+        if ($subscribed) {
+            $builder->andWhere(
+                'customer.email IN (SELECT address.email FROM Shopware\Models\Newsletter\Address address)'
+            );
         }
 
         if (!empty($emails)) {
