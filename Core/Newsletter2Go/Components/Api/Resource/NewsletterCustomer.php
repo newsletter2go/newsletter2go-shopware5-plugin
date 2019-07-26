@@ -325,12 +325,12 @@ class NewsletterCustomer extends Resource
      * @return array
      */
     public function getStreamList(
-        $subscribed = false,
         $group,
         array $emails = array(),
         array $fields = array(),
         $limit = null,
-        $offset = null
+        $offset = null,
+        $subscribed = false
     ) {
         $useAddressModel = $this->useAddressModel();
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
