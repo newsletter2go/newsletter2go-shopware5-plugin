@@ -1,8 +1,8 @@
 //{namespace name=backend/newsletter2go/view/tracking}
 //{block name="backend/newsletter2go/view/tracking"}
-Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
+Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
     extend: 'Ext.form.FieldSet',
-    alias: 'widget.tracking-nl2go',
+    alias: 'widget.cart-nl2go',
     collapsible: true,
     collapsed: false,
     hidden: false,
@@ -15,7 +15,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
         anchor: '100%'
     },
     snippets: {
-        title: '{s name=cart_tracking/title}Cart Tracking{/s}'
+        title: '{s name=cart/title}Cart Tracking{/s}'
     },
     initComponent: function () {
         var me = this;
