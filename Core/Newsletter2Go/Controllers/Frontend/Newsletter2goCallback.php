@@ -43,7 +43,7 @@ class Shopware_Controllers_Frontend_Newsletter2goCallback extends Enlight_Contro
         $config->saveConfigParam('userIntegrationId', $userIntegrationId);
         $config->saveConfigParam('authKey', $auth_key);
         $config->saveConfigParam('accessToken', $access_token);
-        $config->saveConfigParam('$refreshToken', $refresh_token);
+        $config->saveConfigParam('refreshToken', $refresh_token);
 
         header('Content-Type: application/json');
         exit(json_encode(array('success' => true)));
