@@ -28,7 +28,11 @@ Ext.define('Shopware.apps.Newsletter2go.view.Config', {
             {   
                 xtype: 'connect-nl2go',
                 record: me.record
-            }
+            },
+            {
+                xtype: 'cart-nl2go',
+                record: me.record
+            },
         ];
     }
 

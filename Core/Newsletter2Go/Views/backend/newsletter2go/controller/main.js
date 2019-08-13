@@ -27,7 +27,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             'tracking-nl2go': {
                 tracking: me.onTracking
             },
-            'cart-tracking-nl2go': {
+            'cart-nl2go': {
                 cartTracking: me.onCartTracking
             }
         });
