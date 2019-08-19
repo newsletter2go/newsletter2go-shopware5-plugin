@@ -206,34 +206,42 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     public function onFrontendPostDispatchCheckout(Enlight_Event_EventArgs $args)
     {
-        $checkoutController = $args->getSubject();
-        $basket = $checkoutController->getBasket();
-        var_dump();
-        // todo: filter actions, gather params
-
-       $this->sendCart();
+        /* @var Enlight_Controller_Request_RequestHttp $request */
+        $request = $args->getRequest();
+        $actionName = $request->getActionName();
+        if ($actionName === 'ajaxCart') {
+            $checkoutController = $args->getSubject();
+            $basket = $checkoutController->getBasket();
+            $products = [];
+            foreach ($basket['content'] as $item) {
+                $products[] = array('id' => $item['articleID'], 'quantity' => $item['quantity']);
+            }
+            $cartId = Shopware()->Session()->get('sessionId');
+            $customer =  Shopware()->Session()->offsetGet('sUserMail');
+            $shopUrl = Shopware()->Shop()->getHost() . Shopware()->Shop()->getBasePath();
+            var_dump($cartId);
+        }
     }
 
     public function sendCart($products, $customer, $shopUrl, $cartId)
     {
         $apiService = new ApiService();
         $config = new Configuration();
-        $path = str_replace('{id}',$config->getConfigParam('user_integration_id'),self::CART_ENDPOINT);
+        $path = str_replace(
+            '{id}',
+            $config->getConfigParam('user_integration_id'),
+            '/users/integrations/{id}/cart/{external_cart_id}'
+        );
         $path = str_replace('{external_cart_id}', $cartId, $path);
-        $params['body'] = '{}'; // TODO: assemble payload
-//        {
-//              "cart_id":"11",
-//              "shopUrl":"localhost:8096",
-//              "products":[
-//                  {
-//                      "id":"1",
-//                      "quantity":"2"
-//                  }
-//              ],
-//              "customer":{
-//                  "email":"mimo@newsletter2go.com"
-//              }
-//        }
+
+        $body = [
+            'cart_id' => $cartId,
+            'shopUrl' => $shopUrl,
+            'products' => $products,
+            'customer' => $customer
+        ];
+
+        $params['body'] = json_encode($body);
         $apiService->httpRequest('PATCH', $path, $params);
     }
 
