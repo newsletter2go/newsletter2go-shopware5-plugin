@@ -219,7 +219,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             $cartId = Shopware()->Session()->get('sessionId');
             $customer =  Shopware()->Session()->offsetGet('sUserMail');
             $shopUrl = Shopware()->Shop()->getHost() . Shopware()->Shop()->getBasePath();
-            var_dump($cartId);
+            $this->sendCart($products, $customer, $shopUrl, $cartId);
         }
     }
 
