@@ -5,7 +5,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     alias: 'widget.newsletter2go-main-window',
     layout: 'fit',
     width: '30%',
-    height: '55%',
+    height: '58%',
     maximizable: false,
     minimizable: true,
     stateful: true,
