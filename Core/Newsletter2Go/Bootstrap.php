@@ -1,6 +1,8 @@
 <?php
 
 use Newsletter2Go\Components\Newsletter2GoHelper;
+use Newsletter2Go\Services\ApiService;
+use Newsletter2Go\Services\Configuration;
 
 /**
  * @category  Shopware
@@ -198,6 +200,44 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     }
 
     /**
+     * Called when the FrontendPostDispatch Event of Checkout controller is triggered
+     *
+     * @param Enlight_Event_EventArgs $args
+     */
+    public function onFrontendPostDispatchCheckout(Enlight_Event_EventArgs $args)
+    {
+        $checkoutController = $args->getSubject();
+        $basket = $checkoutController->getBasket();
+        var_dump();
+        // todo: filter actions, gather params
+
+       $this->sendCart();
+    }
+
+    public function sendCart($products, $customer, $shopUrl, $cartId)
+    {
+        $apiService = new ApiService();
+        $config = new Configuration();
+        $path = str_replace('{id}',$config->getConfigParam('user_integration_id'),self::CART_ENDPOINT);
+        $path = str_replace('{external_cart_id}', $cartId, $path);
+        $params['body'] = '{}'; // TODO: assemble payload
+//        {
+//              "cart_id":"11",
+//              "shopUrl":"localhost:8096",
+//              "products":[
+//                  {
+//                      "id":"1",
+//                      "quantity":"2"
+//                  }
+//              ],
+//              "customer":{
+//                  "email":"mimo@newsletter2go.com"
+//              }
+//        }
+        $apiService->httpRequest('PATCH', $path, $params);
+    }
+
+    /**
      * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Backend_Newsletter2go
      * event. This event is fired when shopware trying to access the plugin Newsletter2go controller.
      *
@@ -353,6 +393,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->subscribeEvent('Enlight_Controller_Front_StartDispatch', 'onEnlightControllerFrontStartDispatch');
         $this->subscribeEvent('Enlight_Controller_Dispatcher_ControllerPath_Backend_Newsletter2go', 'onGetControllerPathBackendNewsletter2go');
         $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend', 'onFrontendPostDispatch');
+        $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend_Checkout', 'onFrontendPostDispatchCheckout');
     }
 
     /**
