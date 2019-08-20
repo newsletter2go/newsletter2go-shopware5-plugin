@@ -104,15 +104,31 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
         });
     },
     onCartTracking: function () {
-        // TODO: enable feature
+        var message;
+
         Ext.Ajax.request( {
             url: '{url controller="Newsletter2go" action="setCartTracking"}',
             method: 'POST',
             success: function(response) {
-                // TODO: todo
+                var result = Ext.decode(response.responseText),
+                    button = Ext.ComponentQuery.query('#nl2goCartTrackingButton'),
+                    label = Ext.ComponentQuery.query('#nl2goCartTrackingLabel'),
+                    i,
+                    labelText = result.data.trackOrders ? ' Enabled' : ' Disabled',
+                    buttonText = result.data.trackOrders ? 'Disable Tracking' : 'Enable Tracking';
+
+                for (i = 0; i < button.length; i++) {
+                    button[i].setText(buttonText);
+                    label[i].getEl().dom.firstElementChild.firstElementChild.textContent = labelText;
+                }
+
+                message = Ext.String.format('Newsletter2Go shopping cart tracking reconfigured successfully!', '');
+                Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
             },
             failure: function(response) {
-
+                var result = Ext.decode(response.responseText);
+                message = Ext.String.format(result.message, '');
+                Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
             }
         });
     }
