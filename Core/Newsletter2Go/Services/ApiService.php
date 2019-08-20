@@ -192,6 +192,60 @@ class ApiService
         return $response;
     }
 
+    public function getUserIntegration($userIntegrationId)
+    {
+        if ($this->getLastStatusCode() === 200) {
+            $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $this->getAccessToken()];
+            $userIntegrationResult = $this->httpRequest(
+                'GET',
+                '/users/integrations/' . $userIntegrationId,
+                [],
+                $headers
+            );
+            return $userIntegrationResult['value'][0];
+        }
+        $userIntegrationResult['status'] = $this->getLastStatusCode();
+        return $userIntegrationResult;
+    }
+
+    public function getTransactionalMailings($listId)
+    {
+        if ($this->getLastStatusCode() === 200) {
+            $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $this->getAccessToken()];
+            $params = [
+                '_fields' => 'id,name',
+                '_filter' => '(type=IN=("transaction"));state=IN=("active");sub_type=IN=("cart")'
+            ];
+            $transactionalMailingsResult = $this->httpRequest(
+                'GET',
+                '/lists/' . $listId . '/newsletters',
+                $params,
+                $headers
+            );
+            return $transactionalMailingsResult['value'];
+        }
+        $transactionalMailingsResult['status'] = $this->getLastStatusCode();
+        return $transactionalMailingsResult;
+    }
+
+    public function addTransactionMailingToUserIntegration($userIntegrationId, $transactionMailingId, $handleCartAfter)
+    {
+        $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $this->getAccessToken()];
+        $params = [
+            'newsletter_id' => $transactionMailingId,
+            'handle_cart_as_abandoned_after' => $handleCartAfter
+        ];
+        $result = $this->httpRequest(
+            'PATCH',
+            '/users/integrations/' . $userIntegrationId,
+            $params,
+            $headers
+        );
+        return [
+            'status' => $result['status'],
+        ];
+    }
+
     /**
      * @return mixed
      */
