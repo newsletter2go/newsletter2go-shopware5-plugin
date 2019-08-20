@@ -1,5 +1,6 @@
 <?php
 
+use Newsletter2Go\Services\Configuration;
 use Shopware\Models\Newsletter2Go\Newsletter2Go;
 use Newsletter2Go\Services\Environment;
 use Newsletter2Go\Services\Cryptography;
@@ -10,6 +11,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      * @var \Shopware\Components\Model\ModelManager
      */
     private $em;
+
+    private $apiService;
 
     /**
      * @param Enlight_Controller_Request_Request $request
@@ -24,6 +27,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         parent::__construct($request, $response);
 
         $this->em = Shopware()->Models();
+        $this->apiService = new \Newsletter2Go\Services\ApiService();
     }
 
     /**
@@ -102,6 +106,41 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $this->saveConfigParam('trackCarts', $trackCarts);
         $this->em->flush();
         $this->getDataAction();
+    }
+
+    /**
+     * test shop connection to n2g api
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function testConnectionAction()
+    {
+        if ($this->apiService->testConnection()['status'] == 200) {
+            $this->View()->assign(
+                array(
+                    'success' => true,
+                )
+            );
+        } else {
+            $this->View()->assign(
+                array(
+                    'success' => false,
+                )
+            );
+        }
+    }
+
+    public function fetchCartMailings()
+    {
+        $config = new Configuration();
+        $userIntegration = $this->apiService->getUserIntegration($config->getConfigParam('userIntegrationId'));
+        $result =  $this->apiService->getTransactionalMailings($userIntegration['list_id']);
+        $this->View()->assign(
+            array(
+                'success' => false,
+                'data' => $result
+            )
+        );
     }
 
     /**
