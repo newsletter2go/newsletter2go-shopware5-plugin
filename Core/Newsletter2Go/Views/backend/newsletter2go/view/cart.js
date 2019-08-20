@@ -19,7 +19,18 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
     },
     initComponent: function () {
         var me = this;
-
+        Ext.Ajax.request({
+            url: '{url controller="Newsletter2go" action="testConnection"}',
+            method: 'POST',
+            success: function(response) {
+                me.hidden = false;
+                me.doLayout();
+            },
+            failure: function (response) {
+                me.hidden = true;
+                me.doLayout();
+            }
+        });
         me.title = me.snippets.title;
         me.items = me.createForm();
         me.registerEvents();
@@ -60,7 +71,18 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                 handler: function () {
                     me.fireEvent('cartTracking', me.record);
                 }
-
+            },
+            {
+                xtype: 'combobox',
+                emptyText: 'Select Mailing',
+                fieldLabel: 'Transactional Mailing ',
+                store: ['a', 'b', 'c']
+            },
+            {
+                xtype: 'combobox',
+                emptyText: 'Hours',
+                fieldLabel: 'Send Mailing after X Hours ',
+                store: ['1', '2', '3']
             }
         ];
     }
