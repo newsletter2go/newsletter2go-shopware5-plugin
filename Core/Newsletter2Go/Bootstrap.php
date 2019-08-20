@@ -208,8 +208,10 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     {
         /* @var Enlight_Controller_Request_RequestHttp $request */
         $request = $args->getRequest();
+        $config = new Configuration();
+        $trackCart = $config->getConfigParam('trackCarts');
         $actionName = $request->getActionName();
-        if ($actionName === 'ajaxCart') {
+        if ($trackCart == 1 && $actionName === 'ajaxCart') {
             $checkoutController = $args->getSubject();
             $basket = $checkoutController->getBasket();
             $products = [];
