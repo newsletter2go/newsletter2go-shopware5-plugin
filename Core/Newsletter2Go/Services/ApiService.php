@@ -180,7 +180,9 @@ class ApiService
             return [
                 'status' => $companyResult['status'],
                 'account_id' => $refreshResult['account_id'],
-                'company_id' => $companyResult['value'][0]['id']
+                'company_id' => $companyResult['value'][0]['id'],
+                'company_name' => $companyResult['value'][0]['name'],
+                'company_bill_address' => $companyResult['value'][0]['bill_address']
             ];
 
         } else {
