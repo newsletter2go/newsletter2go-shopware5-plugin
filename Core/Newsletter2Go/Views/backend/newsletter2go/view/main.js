@@ -5,7 +5,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     alias: 'widget.newsletter2go-main-window',
     layout: 'fit',
     width: '30%',
-    height: '58%',
+    height: '65%',
     maximizable: false,
     minimizable: true,
     stateful: true,
@@ -18,6 +18,18 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     },
     initComponent: function () {
         var me = this;
+        Ext.Ajax.request({
+            url: '{url controller="Newsletter2go" action="testConnection"}',
+            method: 'POST',
+            success: function(response) {
+                me.height = '65%';
+                me.doLayout();
+            },
+            failure: function (response) {
+                me.height = '50%';
+                me.doLayout();
+            }
+        });
         Ext.applyIf(me, {
             title: me.snippets.title,
             items: me.getItems(),
