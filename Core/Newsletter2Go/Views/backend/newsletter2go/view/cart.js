@@ -39,6 +39,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
     },
     registerEvents: function () {
         this.addEvents('cartTracking');
+        this.addEvents('savePreferences');
     },
     createForm: function () {
         var me = this,
@@ -65,6 +66,19 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             }
         });
 
+        var mailingCombobox = {
+            xtype: 'combobox',
+            emptyText: 'Select Mailing',
+            fieldLabel: 'Transactional Mailing ',
+            store: ['a', 'b', 'c']
+        };
+        var hoursCombobox = {
+            xtype: 'combobox',
+            emptyText: 'Hours',
+            fieldLabel: 'Send Mailing after X Hours ',
+            store: ['1', '2', '3']
+        };
+
         return [
             {
                 xtype: 'box',
@@ -84,18 +98,24 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                     me.fireEvent('cartTracking', me.record);
                 }
             },
+            mailingCombobox,
+            hoursCombobox,
             {
-                xtype: 'combobox',
-                emptyText: 'Select Mailing',
-                fieldLabel: 'Transactional Mailing ',
-                store: ['a', 'b', 'c']
+                fieldLabel: '{s name=savePreferences}label{/s}',
+                name: 'savePreferences',
+                xtype: 'button',
+                itemId: 'nl2goSavePreferencesButton',
+                cls: 'primary small',
+                text: 'save',
+                style: 'margin-bottom: 5px',
+                handler: function () {
+                    me.fireEvent(
+                        'savePreferences',
+                        me,
+                        {transactionMailingId: mailingCombobox.getValue(), handleCartAfter: hoursCombobox.getValue()}
+                    );
+                }
             },
-            {
-                xtype: 'combobox',
-                emptyText: 'Hours',
-                fieldLabel: 'Send Mailing after X Hours ',
-                store: ['1', '2', '3']
-            }
         ];
     }
 });
