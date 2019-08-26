@@ -5,7 +5,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     alias: 'widget.newsletter2go-main-window',
     layout: 'fit',
     width: '30%',
-    height: '65%',
+    height: '67%',
     maximizable: false,
     minimizable: true,
     stateful: true,
@@ -22,11 +22,11 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
             url: '{url controller="Newsletter2go" action="testConnection"}',
             method: 'POST',
             success: function(response) {
-                me.height = '65%';
+                me.height = '67%';
                 me.doLayout();
             },
             failure: function (response) {
-                me.height = '50%';
+                me.height = '52%';
                 me.doLayout();
             }
         });

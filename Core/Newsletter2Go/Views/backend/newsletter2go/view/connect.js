@@ -31,15 +31,18 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
             labelText,
             buttonText,
             labelColor,
-            companyName,
-            companyBillAddress,
+            companyInfo,
             data = me.record;
         if (true) { // TODO: test Connection
             labelText = ' Disconnected';
             buttonText = 'Click here to connect';
+            labelColor = '#be2322';
+            companyInfo = '';
         } else {
             labelText = ' Connected';
             buttonText = 'Click here to disconnect';
+            labelColor = '#31be45';
+            companyInfo = ' to someCompanyName, Kebapstraße 123';
         }
 
         return [
@@ -47,7 +50,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
                 xtype: 'box',
                 style: 'margin-bottom: 5px',
                 itemId: 'nl2goConnectionStatusLabel',
-                html: '<p>Status:<span style="color: #0b6dbe">' + labelText  + '</span></p>'
+                html: '<p>Status:<span style="color:' + labelColor + '">' + labelText  + companyInfo + '</span></p>'
             },
             {
                 xtype: 'button',
