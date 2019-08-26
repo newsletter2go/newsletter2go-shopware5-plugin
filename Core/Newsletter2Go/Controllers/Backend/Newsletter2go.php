@@ -12,8 +12,6 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      */
     private $em;
 
-    private $apiService;
-
     /**
      * @param Enlight_Controller_Request_Request $request
      * @param Enlight_Controller_Response_Response $response
@@ -27,7 +25,6 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         parent::__construct($request, $response);
 
         $this->em = Shopware()->Models();
-        $this->apiService = new \Newsletter2Go\Services\ApiService();
     }
 
     /**
@@ -115,7 +112,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      */
     public function testConnectionAction()
     {
-        if ($this->apiService->testConnection()['status'] == 200) {
+        $apiService = new \Newsletter2Go\Services\ApiService();
+        if ($apiService->testConnection()['status'] == 200) {
             $this->View()->assign(
                 array(
                     'success' => true,
@@ -132,9 +130,10 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
 
     public function fetchCartMailings()
     {
+        $apiService = new \Newsletter2Go\Services\ApiService();
         $config = new Configuration();
-        $userIntegration = $this->apiService->getUserIntegration($config->getConfigParam('userIntegrationId'));
-        $result =  $this->apiService->getTransactionalMailings($userIntegration['list_id']);
+        $userIntegration = $apiService->getUserIntegration($config->getConfigParam('userIntegrationId'));
+        $result =  $apiService->getTransactionalMailings($userIntegration['list_id']);
         $this->View()->assign(
             array(
                 'success' => false,

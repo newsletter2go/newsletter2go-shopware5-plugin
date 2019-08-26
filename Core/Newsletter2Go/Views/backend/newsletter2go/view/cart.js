@@ -53,6 +53,18 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             buttonText = 'Enable Tracking';
         }
 
+        var $store = array();
+        Ext.Ajax.request({
+            url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
+            method: 'POST',
+            success: function(response) {
+                // TODO: fill the store
+            },
+            failure: function (response) {
+                // TODO: do nothing
+            }
+        });
+
         return [
             {
                 xtype: 'box',
