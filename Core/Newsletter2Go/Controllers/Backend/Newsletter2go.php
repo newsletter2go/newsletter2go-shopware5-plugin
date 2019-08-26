@@ -128,7 +128,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         }
     }
 
-    public function fetchCartMailings()
+    public function fetchCartMailingsAction()
     {
         $apiService = new \Newsletter2Go\Services\ApiService();
         $config = new Configuration();
@@ -140,6 +140,33 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
                 'data' => $result
             )
         );
+    }
+
+    public function setCartMailingPreferencesAction()
+    {
+        $apiService = new \Newsletter2Go\Services\ApiService();
+        $transactionMailingId = $this->Request()->getParam('mailingId');
+        $handleCartAfter = $this->Request()->getParam('hours');
+        $userIntegrationId = '';
+
+        $status = $apiService->addTransactionMailingToUserIntegration(
+            $userIntegrationId,
+            $transactionMailingId,
+            $handleCartAfter
+        );
+        if ($status == 200 || $status == 201) {
+            $this->View()->assign(
+                array(
+                    'success' => true,
+                )
+            );
+        } else {
+            $this->View()->assign(
+                array(
+                    'success' => false,
+                )
+            );
+        }
     }
 
     /**

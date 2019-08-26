@@ -28,7 +28,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 tracking: me.onTracking
             },
             'cart-nl2go': {
-                cartTracking: me.onCartTracking
+                cartTracking: me.onCartTracking,
+                savePreferences: me.onSavePreferences
             }
         });
 
@@ -122,7 +123,30 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                     label[i].getEl().dom.firstElementChild.firstElementChild.textContent = labelText;
                 }
 
-                message = Ext.String.format('Newsletter2Go shopping cart tracking reconfigured successfully!', '');
+                message = Ext.String.format('Newsletter2Go shopping cart tracking activated successfully!', '');
+                Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
+            },
+            failure: function(response) {
+                var result = Ext.decode(response.responseText);
+                message = Ext.String.format(result.message, '');
+                Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
+            }
+        });
+    },
+    onSavePreferences: function (cartForm, values) {
+        var message;
+
+        Ext.Ajax.request( {
+            url: '{url controller="Newsletter2go" action="setCartMailingPreferences"}',
+            method: 'POST',
+            params: {
+                transactionMailingId: values.transactionMailingId,
+                handleCartAfter: values.handleCartAfter
+            },
+            success: function(response) {
+                var result = Ext.decode(response.responseText);
+
+                message = Ext.String.format('abandoned shopping cart handling reconfigured successfully!', '');
                 Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
             },
             failure: function(response) {
