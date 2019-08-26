@@ -507,29 +507,30 @@ class NewsletterCustomer extends Resource
 
     private function getCustomFields()
     {
-        $fields = [];
+        $fields = array();
 
         try {
             $crudService = Shopware()->Container()->get('shopware_attribute.crud_service');
             $customerCustomAttributesList = $crudService->getList('s_user_attributes');
-
+            $unwantedFields =  array('id', 'userID');
+            $datatypes = array(
+                'boolean', 'date', 'integer', 'double', 'datetime'
+            );
             foreach ($customerCustomAttributesList as $attribute) {
 
                 $columnName = $attribute->getColumnName();
 
-                if (in_array($columnName, ['id', 'userID'])) {
+                if (in_array($columnName, $unwantedFields)) {
                     continue;
                 }
 
-                $type = in_array($attribute->getColumnType(), [
-                    'boolean', 'date', 'integer', 'double', 'datetime'
-                ]) ? ucfirst($attribute->getColumnType()) : 'String';
+                $type = in_array($attribute->getColumnType(), $datatypes) ? ucfirst($attribute->getColumnType()) : 'String';
 
                 $fields[] =  $this->createField('attribute.' . $columnName, $attribute->getLabel(), $attribute->getLabel(), $type);
             }
 
             if (is_null($fields)) {
-                $fields = [];
+                $fields = array();
             }
 
         } catch (\Exception $exception) {
@@ -541,7 +542,7 @@ class NewsletterCustomer extends Resource
 
     private function getCustomerCustomFields($customer)
     {
-        $fields = [];
+        $fields = array();
         $availableCustomFields = $this->getCustomFields();
 
         if (empty($availableCustomFields) || !is_array($availableCustomFields)) {
