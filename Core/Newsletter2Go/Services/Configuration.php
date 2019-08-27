@@ -14,6 +14,10 @@ class Configuration
      */
     private $em;
 
+    public function __construct() {
+        $this->em = Shopware()->Models();
+    }
+
     /**
      * Returns config value for $name, returns string if $name value exists,
      * otherwise it returns $default value.
