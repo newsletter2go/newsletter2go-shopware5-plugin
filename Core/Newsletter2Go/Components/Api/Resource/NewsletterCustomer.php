@@ -477,10 +477,6 @@ class NewsletterCustomer extends Resource
                 unset($customerBilling['birthday']);
             }
 
-            if (!empty($arrangedFields['billing'])) {
-                unset($customerBilling['id']);
-            }
-
             if (!in_array('id', $fields, true)) {
                 unset($customer['id']);
             }
