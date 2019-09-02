@@ -113,10 +113,12 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     public function testConnectionAction()
     {
         $apiService = new \Newsletter2Go\Services\ApiService();
-        if ($apiService->testConnection()['status'] == 200) {
+        $result = $apiService->testConnection();
+        if ($result['status'] == 200) {
             $this->View()->assign(
                 array(
                     'success' => true,
+                    'data' => $result
                 )
             );
         } else {
@@ -131,10 +133,11 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     public function fetchCartMailingsAction()
     {
         $apiService = new \Newsletter2Go\Services\ApiService();
+        $apiService->testConnection();
         $config = new Configuration();
         $userIntegration = $apiService->getUserIntegration($config->getConfigParam('userIntegrationId'));
         $result =  $apiService->getTransactionalMailings($userIntegration['list_id']);
-        $success = isset($result['status']) ? false : true;
+        $success = (isset($result['status']) && $result['status'] !== null) ? false : true;
         $this->View()->assign(
             array(
                 'success' => $success,
@@ -175,10 +178,10 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     private function createApiUser()
-    {   
+    {
         $enviroment = new Environment();
 	    $cryptography = new Cryptography($enviroment);
-	    
+
         $apiUser = new \Shopware\Models\User\User();
         $apiUser->setName('newsletter2goApiUser');
         $apiUser->setUsername('newsletter2goApiUser');
