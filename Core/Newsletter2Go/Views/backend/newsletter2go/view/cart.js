@@ -86,10 +86,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             displayField: 'name',
             store: new Ext.data.SimpleStore({
                 fields:['id', 'name'],
-                data: [
-                    [1, "aewa"],
-                    [2, "sff"]
-                ]
+                data: store
             })
         });
         var hoursCombobox = {

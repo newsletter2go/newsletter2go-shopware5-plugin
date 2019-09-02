@@ -68,7 +68,7 @@ class ApiService
                         }
 
                         $getParams = "?" . http_build_query($params);
-                        $endpoint .= $endpoint . $getParams;
+                        $endpoint = $endpoint . $getParams;
                     }
                     break;
                 default:
