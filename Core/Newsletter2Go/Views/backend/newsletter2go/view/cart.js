@@ -54,30 +54,57 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             buttonText = 'Enable Tracking';
         }
 
-        var $store = [];
+        var store = [];
         Ext.Ajax.request({
             url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
             method: 'POST',
             success: function(response) {
-                // TODO: fill the store
-            },
-            failure: function (response) {
-                // TODO: do nothing
+                console.log("response", response);
+                var result = Ext.decode(response.responseText);
+                console.log("success", result.success);
+                console.log("data", result.data);
+                if (result.success && result.data != null) {
+                    result.data.forEach(function(element) {
+                        console.log(element);
+                        store.push([element.id, element.name]);
+                    });
+                }
             }
         });
 
-        var mailingCombobox = {
-            xtype: 'combobox',
-            emptyText: 'Select Mailing',
+        var mailingCombobox = Ext.create('Ext.form.field.ComboBox', {
+            name: 'mailing',
+            queryMode: 'local',
+            margin: '0 0 10',
+            anchor: '100%',
+            valueField: 'id',
+            editable: false,
+            labelWidth: 130,
+            emptyText: 'transactional Mailing',
             fieldLabel: 'Transactional Mailing ',
-            store: ['a', 'b', 'c']
-        };
+            value: null,
+            displayField: 'name',
+            store: new Ext.data.SimpleStore({
+                fields:['id', 'name'],
+                data: [
+                    [1, "aewa"],
+                    [2, "sff"]
+                ]
+            })
+        });
         var hoursCombobox = {
-            xtype: 'combobox',
-            emptyText: 'Hours',
+            xtype: 'numberfield',
+            anchor: '100%',
+            name: 'bottles',
             fieldLabel: 'Send Mailing after X Hours ',
-            store: ['1', '2', '3']
+            value: 24,
+            maxValue: 24,
+            minValue: 1,
+            handler: function() {
+                this.up('form').down('[name=bottles]').spinDown();
+            }
         };
+
 
         return [
             {
@@ -98,8 +125,8 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                     me.fireEvent('cartTracking', me.record);
                 }
             },
-            mailingCombobox,
             hoursCombobox,
+            mailingCombobox,
             {
                 fieldLabel: '{s name=savePreferences}label{/s}',
                 name: 'savePreferences',
@@ -109,10 +136,14 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                 text: 'save',
                 style: 'margin-bottom: 5px',
                 handler: function () {
+                    var selectedValues = {
+                        transactionMailingId: mailingCombobox.value,
+                        handleCartAfter: hoursCombobox.value
+                    };
                     me.fireEvent(
                         'savePreferences',
-                        me,
-                        {transactionMailingId: mailingCombobox.getValue(), handleCartAfter: hoursCombobox.getValue()}
+                        me.record,
+                        selectedValues
                     );
                 }
             },
