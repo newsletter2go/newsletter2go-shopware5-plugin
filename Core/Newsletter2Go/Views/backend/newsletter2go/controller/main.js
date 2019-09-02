@@ -4,12 +4,48 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
     mainWindow: null,
     init: function () {
         var me = this;
+        let testConnection = false;
+        let companyName = null;
+        let companyBillAddress = null;
+        let store = [];
+
+        Ext.Ajax.request({
+            url: '{url controller="Newsletter2go" action="testConnection"}',
+            method: 'POST',
+            success: function(response) {
+                var result = Ext.decode(response.responseText);
+                if (result.success) {
+                    testConnection = true;
+                    companyName = result['company_name'];
+                    companyBillAddress = result['company_bill_address']
+                }
+            }
+        });
+
+        if (testConnection) {
+            Ext.Ajax.request({
+                url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
+                method: 'POST',
+                success: function(response) {
+                    var result = Ext.decode(response.responseText);
+                    if (result.success && result.data != null) {
+                        result.data.forEach(function(element) {
+                            store.push([element.id, element.name]);
+                        });
+                    }
+                }
+            });
+        }
 
         Ext.Ajax.request({
             url: '{url controller="Newsletter2go" action="getData"}',
             method: 'POST',
             success: function(response) {
                 var result = Ext.decode(response.responseText);
+                result.data['testConnection'] = testConnection;
+                result.data['company_name'] = companyName;
+                result.data['company_bill_address'] = companyBillAddress;
+                result.data['store'] = store;
 
                 me.mainWindow = me.getView('Main').create({
                     record: result.data
