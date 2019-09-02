@@ -35,7 +35,7 @@ class Newsletter2Go extends ModelEntity
     /**
      * @var string $value
      *
-     * @ORM\Column(name="value", type="string", nullable=true)
+     * @ORM\Column(name="value", type="string", length=510, nullable=true)
      */
     private $value;
 
