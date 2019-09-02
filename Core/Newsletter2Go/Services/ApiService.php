@@ -101,7 +101,7 @@ class ApiService
                 'grant_type' => self::REFRESH_GRANT_TYPE
             ];
 
-            $result = $this->httpRequest('POST', '/oauth/v2/token', $data, [], true);
+            $result = $this->httpRequest('POST', '/oauth/v2/token', $data, ['Content-Type' => 'application/json'], true);
 
             if (isset($result['access_token'])) {
                 $this->setAccessToken($result['access_token']);

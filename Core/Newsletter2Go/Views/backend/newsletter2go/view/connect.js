@@ -33,7 +33,8 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
             labelColor,
             companyInfo,
             data = me.record;
-        if (true) { // TODO: test Connection
+            console.log("me.record", data);
+        if (!data['testConnection']) {
             labelText = ' Disconnected';
             buttonText = 'Click here to connect';
             labelColor = '#be2322';
@@ -42,7 +43,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
             labelText = ' Connected';
             buttonText = 'Click here to disconnect';
             labelColor = '#31be45';
-            companyInfo = ' to someCompanyName, Kebapstraße 123';
+            companyInfo = ' to ' + data['company_name'] + ', ' + data['company_bill_address'];
         }
 
         return [
