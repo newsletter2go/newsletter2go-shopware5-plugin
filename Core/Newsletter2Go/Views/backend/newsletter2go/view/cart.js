@@ -51,24 +51,6 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             buttonText = 'Enable Tracking';
         }
 
-        var store = [];
-        Ext.Ajax.request({
-            url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
-            method: 'POST',
-            success: function(response) {
-                console.log("response", response);
-                var result = Ext.decode(response.responseText);
-                console.log("success", result.success);
-                console.log("data", result.data);
-                if (result.success && result.data != null) {
-                    result.data.forEach(function(element) {
-                        console.log(element);
-                        store.push([element.id, element.name]);
-                    });
-                }
-            }
-        });
-
         var mailingCombobox = Ext.create('Ext.form.field.ComboBox', {
             name: 'mailing',
             queryMode: 'local',
@@ -83,7 +65,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             displayField: 'name',
             store: new Ext.data.SimpleStore({
                 fields:['id', 'name'],
-                data: store
+                data: data.store
             })
         });
         var hoursCombobox = {

@@ -3,11 +3,11 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
     extend: 'Ext.app.Controller',
     mainWindow: null,
     init: function () {
-        var me = this;
-        let testConnection = false;
-        let companyName = null;
-        let companyBillAddress = null;
-        let store = [];
+        var me = this,
+            testConnection = false,
+            companyName = null,
+            companyBillAddress = null,
+            store = [];
 
         Ext.Ajax.request({
             url: '{url controller="Newsletter2go" action="testConnection"}',
@@ -16,40 +16,42 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 var result = Ext.decode(response.responseText);
                 if (result.success) {
                     testConnection = true;
-                    companyName = result['company_name'];
-                    companyBillAddress = result['company_bill_address']
+                    companyName = result.data['company_name'];
+                    companyBillAddress = result.data['company_bill_address'];
+
+                    Ext.Ajax.request({
+                        url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
+                        method: 'POST',
+                        success: function(response) {
+                            console.log(response);
+                            var result = Ext.decode(response.responseText);
+                            if (result.success && result.data != null) {
+                                result.data.forEach(function(element) {
+                                    store.push([element.id, element.name]);
+                                });
+                            }
+
+                            Ext.Ajax.request({
+                                url: '{url controller="Newsletter2go" action="getData"}',
+                                method: 'POST',
+                                success: function(response) {
+                                    var result = Ext.decode(response.responseText);
+                                    result.data['testConnection'] = testConnection;
+                                    result.data['company_name'] = companyName;
+                                    result.data['company_bill_address'] = companyBillAddress;
+                                    result.data['store'] = store;
+
+                                    me.mainWindow = me.getView('Main').create({
+                                        record: result.data
+                                    }).show();
+                                }
+                            });
+                        }
+                    });
                 }
-            }
-        });
 
-        if (testConnection) {
-            Ext.Ajax.request({
-                url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
-                method: 'POST',
-                success: function(response) {
-                    var result = Ext.decode(response.responseText);
-                    if (result.success && result.data != null) {
-                        result.data.forEach(function(element) {
-                            store.push([element.id, element.name]);
-                        });
-                    }
-                }
-            });
-        }
 
-        Ext.Ajax.request({
-            url: '{url controller="Newsletter2go" action="getData"}',
-            method: 'POST',
-            success: function(response) {
-                var result = Ext.decode(response.responseText);
-                result.data['testConnection'] = testConnection;
-                result.data['company_name'] = companyName;
-                result.data['company_bill_address'] = companyBillAddress;
-                result.data['store'] = store;
 
-                me.mainWindow = me.getView('Main').create({
-                    record: result.data
-                }).show();
             }
         });
 
@@ -80,7 +82,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             success: function(response) {
                 var result = Ext.decode(response.responseText),
                     users = Ext.ComponentQuery.query('#nl2goShopUsername'),
-                    keys = Ext.ComponentQuery.query('#nl2goShopApiKey'), 
+                    keys = Ext.ComponentQuery.query('#nl2goShopApiKey'),
                     i;
 
                 for (i = 0; i < users.length; i++) {

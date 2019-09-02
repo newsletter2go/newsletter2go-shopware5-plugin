@@ -90,7 +90,6 @@ class ApiService
 
     /**
      * @return array
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     private function refreshToken()
     {
@@ -106,7 +105,11 @@ class ApiService
             if (isset($result['access_token'])) {
                 $this->setAccessToken($result['access_token']);
                 $this->setRefreshToken($result['refresh_token']);
-                $this->config->saveConfigParam('refreshToken', $result['refresh_token']);
+                try {
+                    $this->config->saveConfigParam('refreshToken', $result['refresh_token']);
+                } catch (\Exception $exception) {
+
+                }
             }
         } else {
             $this->setLastStatusCode(203);
@@ -166,7 +169,6 @@ class ApiService
 
     /**
      * @return array
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function testConnection()
     {
