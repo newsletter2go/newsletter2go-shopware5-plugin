@@ -231,7 +231,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $config = new Configuration();
         $path = str_replace(
             '{id}',
-            $config->getConfigParam('user_integration_id'),
+            $config->getConfigParam('userIntegrationId'),
             '/users/integrations/{id}/cart/{external_cart_id}'
         );
         $path = str_replace('{external_cart_id}', $cartId, $path);
