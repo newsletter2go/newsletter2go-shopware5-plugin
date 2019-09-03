@@ -68,18 +68,15 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                 data: data.store
             })
         });
-        var hoursCombobox = {
-            xtype: 'numberfield',
+        var hoursCombobox = Ext.create('Ext.form.NumberField', {
+            name: 'handleCartAfter',
+            margin: '0 0 10',
             anchor: '100%',
-            name: 'bottles',
             fieldLabel: 'Send Mailing after X Hours ',
             value: 24,
             maxValue: 24,
             minValue: 1,
-            handler: function() {
-                this.up('form').down('[name=bottles]').spinDown();
-            }
-        };
+        });
 
 
         return [
