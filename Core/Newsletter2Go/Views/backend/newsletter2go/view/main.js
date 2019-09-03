@@ -19,13 +19,13 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     initComponent: function () {
         var me = this,
             data = me.record;
-        if (data['testConnection']) {
-            me.height = '71%';
-            me.doLayout();
-        } else {
-            me.height = '52%';
-            me.doLayout();
-        }
+        // if (data['testConnection']) {
+        //     me.height = '71%';
+        //     me.doLayout();
+        // } else {
+        //     me.height = '52%';
+        //     me.doLayout();
+        // }
         Ext.applyIf(me, {
             title: me.snippets.title,
             items: me.getItems(),
