@@ -48,10 +48,23 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                             });
                         }
                     });
+                } else {
+                    Ext.Ajax.request({
+                        url: '{url controller="Newsletter2go" action="getData"}',
+                        method: 'POST',
+                        success: function(response) {
+                            var result = Ext.decode(response.responseText);
+                            result.data['testConnection'] = testConnection;
+                            result.data['company_name'] = companyName;
+                            result.data['company_bill_address'] = companyBillAddress;
+                            result.data['store'] = store;
+
+                            me.mainWindow = me.getView('Main').create({
+                                record: result.data
+                            }).show();
+                        }
+                    });
                 }
-
-
-
             }
         });
 
