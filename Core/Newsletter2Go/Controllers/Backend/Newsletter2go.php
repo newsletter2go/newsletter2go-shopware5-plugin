@@ -149,26 +149,29 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     public function setCartMailingPreferencesAction()
     {
         $apiService = new \Newsletter2Go\Services\ApiService();
+        $apiService->testConnection();
         $config = new Configuration();
         $transactionMailingId = $this->Request()->getParam('transactionMailingId');
         $handleCartAfter = $this->Request()->getParam('handleCartAfter');
         $userIntegrationId = $config->getConfigParam('userIntegrationId');
 
-        $status = $apiService->addTransactionMailingToUserIntegration(
+        $result = $apiService->addTransactionMailingToUserIntegration(
             $userIntegrationId,
             $transactionMailingId,
             $handleCartAfter
         );
-        if ($status == 200 || $status == 201) {
+        if ($result['status'] == 200 || $result['status'] == 201) {
             $this->View()->assign(
                 array(
                     'success' => true,
+                    'status' => $result
                 )
             );
         } else {
             $this->View()->assign(
                 array(
                     'success' => false,
+                    'status' => $result
                 )
             );
         }
