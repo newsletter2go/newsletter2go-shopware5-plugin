@@ -47,7 +47,6 @@ class ApiService
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
             if ($authorize) {
                 // this is needed for refresh token
@@ -57,8 +56,10 @@ class ApiService
             switch ($method) {
                 case 'PATCH':
                 case 'PUT':
-                    curl_setopt($ch, CURLOPT_PUT, true);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
+                    $headers[] = 'Content-Length: ' .  strlen(json_encode($params));
                     break;
                 case 'POST':
                     curl_setopt($ch, CURLOPT_POST, true);
@@ -78,6 +79,7 @@ class ApiService
                 default:
                     return null;
             }
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($ch, CURLOPT_URL, self::API_BASE_URL . $endpoint);
 
             $response = json_decode(curl_exec($ch), true);
