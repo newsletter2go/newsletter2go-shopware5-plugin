@@ -150,8 +150,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     {
         $apiService = new \Newsletter2Go\Services\ApiService();
         $config = new Configuration();
-        $transactionMailingId = $this->Request()->getParam('mailingId');
-        $handleCartAfter = $this->Request()->getParam('hours');
+        $transactionMailingId = $this->Request()->getParam('transactionMailingId');
+        $handleCartAfter = $this->Request()->getParam('handleCartAfter');
         $userIntegrationId = $config->getConfigParam('userIntegrationId');
 
         $status = $apiService->addTransactionMailingToUserIntegration(

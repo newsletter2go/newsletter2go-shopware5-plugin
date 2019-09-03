@@ -56,7 +56,8 @@ class ApiService
 
             switch ($method) {
                 case 'PATCH':
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+                case 'PUT':
+                    curl_setopt($ch, CURLOPT_PUT, true);
                     curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
                     break;
                 case 'POST':
