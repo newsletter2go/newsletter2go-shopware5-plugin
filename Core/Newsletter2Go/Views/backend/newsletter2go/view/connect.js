@@ -58,7 +58,11 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
                 text: buttonText,
                 style: 'margin-bottom: 5px',
                 handler: function () {
-                    me.fireEvent('connect', me.record);
+                    if (!data['testConnection']) {
+                        me.fireEvent('connect', me.record);
+                    } else {
+                        me.fireEvent('disconnect', me.record);
+                    }
                 }
             }
         ];

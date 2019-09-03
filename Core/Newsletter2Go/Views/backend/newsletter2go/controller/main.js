@@ -60,7 +60,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 resetApiKey: me.onApiKeyReset
             },
             'connect-nl2go': {
-                connect: me.onConnect
+                connect: me.onConnect,
+                disconnect: me.onDisconnect
             },
             'tracking-nl2go': {
                 tracking: me.onTracking
@@ -112,6 +113,23 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
         ];
 
         window.open(n2gUrl + '?' + params.join('&'), '_blank');
+    },
+    onDisconnect: function (record) {
+        Ext.Ajax.request({
+            url: '{url controller="Newsletter2go" action="deleteConnectedAccount"}',
+            method: 'POST',
+            success: function(response) {
+                var result = Ext.decode(response.responseText);
+
+                message = Ext.String.format('Newsletter2Go account disconnected successfully!', '');
+                Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
+            },
+            failure: function (response) {
+                var result = Ext.decode(response.responseText);
+                message = Ext.String.format(result.message, '');
+                Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
+            }
+        });
     },
     onTracking: function () {
         var message;

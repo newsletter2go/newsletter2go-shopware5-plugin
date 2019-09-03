@@ -178,6 +178,36 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
     }
 
     /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function deleteConnectedAccountAction() {
+        $connectionDetails = array();
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'companyId')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'userIntegrationId')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'authKey')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'accessToken')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'refreshToken')
+        );
+
+        foreach ($connectionDetails as $row) {
+            if ($row) {
+                $this->em->remove($row);
+            }
+        }
+
+        $this->em->flush();
+    }
+
+    /**
      * @throws \Doctrine\ORM\ORMInvalidArgumentException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
