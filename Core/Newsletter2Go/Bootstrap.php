@@ -227,8 +227,13 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
 
     public function sendCart($products, $customer, $shopUrl, $cartId)
     {
+        if ($customer === null || strlen($customer) < 3) {
+            return;
+        }
         $apiService = new ApiService();
+        $status = $apiService->testConnection();
         $config = new Configuration();
+        $accessToken = $config->getConfigParam('accessToken');
         $path = str_replace(
             '{id}',
             $config->getConfigParam('userIntegrationId'),
@@ -240,11 +245,10 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             'cart_id' => $cartId,
             'shopUrl' => $shopUrl,
             'products' => $products,
-            'customer' => $customer
+            'customer' => ["email" => $customer]
         ];
-
-        $params['body'] = json_encode($body);
-        $apiService->httpRequest('PATCH', $path, $params);
+        $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $apiService->getAccessToken()];
+        $apiService->httpRequest('PATCH', $path, $body, $headers);
     }
 
     /**
