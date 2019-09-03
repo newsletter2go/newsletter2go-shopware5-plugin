@@ -17,19 +17,15 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
         cancel: '{s name=config/cancel}Cancel{/s}'
     },
     initComponent: function () {
-        var me = this;
-        Ext.Ajax.request({
-            url: '{url controller="Newsletter2go" action="testConnection"}',
-            method: 'POST',
-            success: function(response) {
-                me.height = '71%';
-                me.doLayout();
-            },
-            failure: function (response) {
-                me.height = '52%';
-                me.doLayout();
-            }
-        });
+        var me = this,
+            data = me.record;
+        if (data['testConnection']) {
+            me.height = '71%';
+            me.doLayout();
+        } else {
+            me.height = '52%';
+            me.doLayout();
+        }
         Ext.applyIf(me, {
             title: me.snippets.title,
             items: me.getItems(),

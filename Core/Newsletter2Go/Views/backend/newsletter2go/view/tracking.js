@@ -18,19 +18,15 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
         title: '{s name=tracking/title}Tracking{/s}'
     },
     initComponent: function () {
-        var me = this;
-        Ext.Ajax.request({
-            url: '{url controller="Newsletter2go" action="testConnection"}',
-            method: 'POST',
-            success: function(response) {
-                me.hidden = false;
-                me.doLayout();
-            },
-            failure: function (response) {
-                me.hidden = true;
-                me.doLayout();
-            }
-        });
+        var me = this,
+            data = me.record;
+        if (data['testConnection']) {
+            me.hidden = false;
+            me.doLayout();
+        } else {
+            me.hidden = true;
+            me.doLayout();
+        }
         me.title = me.snippets.title;
         me.items = me.createForm();
         me.registerEvents();
