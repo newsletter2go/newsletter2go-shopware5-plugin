@@ -211,12 +211,14 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $config = new Configuration();
         $trackCart = $config->getConfigParam('trackCarts');
         $actionName = $request->getActionName();
-        if ($trackCart == 1 && $actionName === 'ajaxCart') {
+        if ($trackCart == 1 && ($actionName === 'ajaxCart' || $actionName === 'finish')) {
             $checkoutController = $args->getSubject();
             $basket = $checkoutController->getBasket();
             $products = [];
-            foreach ($basket['content'] as $item) {
-                $products[] = array('id' => $item['articleID'], 'quantity' => $item['quantity']);
+            if ($actionName !== 'finish') {
+                foreach ($basket['content'] as $item) {
+                    $products[] = array('id' => $item['articleID'], 'quantity' => $item['quantity']);
+                }
             }
             $cartId = Shopware()->Session()->get('sessionId');
             $customer =  Shopware()->Session()->offsetGet('sUserMail');
@@ -231,9 +233,9 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
             return;
         }
         $apiService = new ApiService();
-        $status = $apiService->testConnection();
+        $apiService->testConnection();
         $config = new Configuration();
-        $accessToken = $config->getConfigParam('accessToken');
+
         $path = str_replace(
             '{id}',
             $config->getConfigParam('userIntegrationId'),
