@@ -20,13 +20,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
     initComponent: function () {
         var me = this,
             data = me.record;
-        if (data['testConnection']) {
-            me.hidden = false;
-            me.doLayout();
-        } else {
-            me.hidden = true;
-            me.doLayout();
-        }
+        me.disabled = !data['testConnection'];
 
         me.title = me.snippets.title;
         me.items = me.createForm();
@@ -61,7 +55,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             labelWidth: 130,
             emptyText: 'transactional Mailing',
             fieldLabel: 'Transactional Mailing ',
-            value: null,
+            value: data['newsletter_id'],
             displayField: 'name',
             store: new Ext.data.SimpleStore({
                 fields:['id', 'name'],
@@ -73,7 +67,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             margin: '0 0 10',
             anchor: '100%',
             fieldLabel: 'Send Mailing after X Hours ',
-            value: 24,
+            value: data['handle_cart_as_abandoned_after']/60,
             maxValue: 24,
             minValue: 1,
         });
