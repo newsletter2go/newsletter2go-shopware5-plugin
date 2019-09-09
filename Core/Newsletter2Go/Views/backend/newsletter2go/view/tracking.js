@@ -20,13 +20,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
     initComponent: function () {
         var me = this,
             data = me.record;
-        if (data['testConnection']) {
-            me.hidden = false;
-            me.doLayout();
-        } else {
-            me.hidden = true;
-            me.doLayout();
-        }
+        me.disabled = !data['testConnection'];
         me.title = me.snippets.title;
         me.items = me.createForm();
         me.registerEvents();

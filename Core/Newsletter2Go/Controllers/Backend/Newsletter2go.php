@@ -136,7 +136,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $apiService->testConnection();
         $config = new Configuration();
         $userIntegration = $apiService->getUserIntegration($config->getConfigParam('userIntegrationId'));
-        $result =  $apiService->getTransactionalMailings($userIntegration['list_id']);
+        $result['mailings'] =  $apiService->getTransactionalMailings($userIntegration['list_id']);
+        $result['userIntegration'] = $userIntegration;
         $success = (isset($result['status']) && $result['status'] !== null) ? false : true;
         $this->View()->assign(
             array(

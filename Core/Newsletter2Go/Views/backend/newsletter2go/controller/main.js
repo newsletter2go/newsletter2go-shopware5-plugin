@@ -7,6 +7,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             testConnection = false,
             companyName = null,
             companyBillAddress = null,
+            handleCartAsAbandonedAfter = null,
+            newsletterId = null,
             store = [];
 
         Ext.Ajax.request({
@@ -26,9 +28,11 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                             console.log(response);
                             var result = Ext.decode(response.responseText);
                             if (result.success && result.data != null) {
-                                result.data.forEach(function(element) {
+                                result.data['mailings'].forEach(function(element) {
                                     store.push([element.id, element.name]);
                                 });
+                                newsletterId = result.data['userIntegration']['newsletter_id'];
+                                handleCartAsAbandonedAfter = result.data['userIntegration']['handle_cart_as_abandoned_after'];
                             }
 
                             Ext.Ajax.request({
@@ -39,6 +43,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                                     result.data['testConnection'] = testConnection;
                                     result.data['company_name'] = companyName;
                                     result.data['company_bill_address'] = companyBillAddress;
+                                    result.data['handle_cart_as_abandoned_after'] = handleCartAsAbandonedAfter;
+                                    result.data['newsletter_id'] = newsletterId;
                                     result.data['store'] = store;
 
                                     me.mainWindow = me.getView('Main').create({
