@@ -132,6 +132,9 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
         ];
 
         window.open(n2gUrl + '?' + params.join('&'), '_blank');
+
+        let mainWindow = Ext.ComponentQuery.query('newsletter2go-main-window')[0];
+        mainWindow.close();
     },
     onDisconnect: function (record) {
         Ext.Ajax.request({
@@ -142,6 +145,17 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
 
                 message = Ext.String.format('Newsletter2Go account disconnected successfully!', '');
                 Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
+
+                let connectWidget = Ext.ComponentQuery.query('connect-nl2go')[0];
+                let button = connectWidget.getComponent('nl2goConnectionButton');
+                let conLabel = connectWidget.getComponent('nl2goConnectionStatusLabel');
+                button.setText('Click here to connect');
+                conLabel.update('<p>Status:<span style="color:#be2322"> Disconnected</span></p>');
+
+                let trackingWidget = Ext.ComponentQuery.query('tracking-nl2go')[0];
+                trackingWidget.setDisabled(true);
+                let cartWidget = Ext.ComponentQuery.query('cart-nl2go')[0];
+                cartWidget.setDisabled(true);
             },
             failure: function (response) {
                 var result = Ext.decode(response.responseText);
