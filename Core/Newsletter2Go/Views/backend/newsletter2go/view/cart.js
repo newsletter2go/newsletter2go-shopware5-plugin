@@ -44,7 +44,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             buttonText = 'Enable Tracking';
         }
 
-        var mailingCombobox = Ext.create('Ext.form.field.ComboBox', {
+        let mailingCombobox = Ext.create('Ext.form.field.ComboBox', {
             name: 'mailing',
             queryMode: 'local',
             margin: '0 0 10',
@@ -61,7 +61,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                 data: data.store
             })
         });
-        var hoursCombobox = Ext.create('Ext.form.NumberField', {
+        let hoursCombobox = Ext.create('Ext.form.NumberField', {
             name: 'handleCartAfter',
             margin: '0 0 10',
             anchor: '100%',
@@ -102,7 +102,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                 text: 'save',
                 style: 'margin-bottom: 5px',
                 handler: function () {
-                    var selectedValues = {
+                    let selectedValues = {
                         transactionMailingId: mailingCombobox.value,
                         handleCartAfter: hoursCombobox.value
                     };
