@@ -56,7 +56,4 @@ class Configuration
         $this->em->persist($element);
         $this->em->flush();
     }
-
-    // TODO: use this class in ApiService, Backend\Newslettter2Go, Newsletter2goCallback to avoid duplicate code
-
 }
