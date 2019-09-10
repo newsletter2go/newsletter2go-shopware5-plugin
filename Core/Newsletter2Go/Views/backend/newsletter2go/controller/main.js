@@ -141,9 +141,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             url: '{url controller="Newsletter2go" action="deleteConnectedAccount"}',
             method: 'POST',
             success: function(response) {
-                var result = Ext.decode(response.responseText);
-
-                message = Ext.String.format('Newsletter2Go account disconnected successfully!', '');
+                let message = Ext.String.format('Newsletter2Go account disconnected successfully!', '');
                 Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
 
                 let connectWidget = Ext.ComponentQuery.query('connect-nl2go')[0];
@@ -158,8 +156,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 cartWidget.setDisabled(true);
             },
             failure: function (response) {
-                var result = Ext.decode(response.responseText);
-                message = Ext.String.format(result.message, '');
+                let result = Ext.decode(response.responseText);
+                let message = Ext.String.format(result.message, '');
                 Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
             }
         });
@@ -172,8 +170,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             method: 'POST',
             success: function(response) {
                 var result = Ext.decode(response.responseText),
-                    button = Ext.ComponentQuery.query('#nl2goTrackingButton'),
-                    label = Ext.ComponentQuery.query('#nl2goTrackingLabel'),
+                    button = Ext.ComponentQuery.query('#nl2goConversionTrackingButton'),
+                    label = Ext.ComponentQuery.query('#nl2goConversionTrackingLabel'),
                     i,
                     labelText = result.data.trackOrders ? ' Enabled' : ' Disabled',
                     buttonText = result.data.trackOrders ? 'Disable Tracking' : 'Enable Tracking';
@@ -200,7 +198,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             url: '{url controller="Newsletter2go" action="setCartTracking"}',
             method: 'POST',
             success: function(response) {
-                var result = Ext.decode(response.responseText),
+                let result = Ext.decode(response.responseText),
                     button = Ext.ComponentQuery.query('#nl2goCartTrackingButton'),
                     label = Ext.ComponentQuery.query('#nl2goCartTrackingLabel'),
                     i,
@@ -216,7 +214,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
             },
             failure: function(response) {
-                var result = Ext.decode(response.responseText);
+                let result = Ext.decode(response.responseText);
                 message = Ext.String.format(result.message, '');
                 Shopware.Notification.createGrowlMessage('Error!', message, 'new message');
             }
@@ -233,8 +231,6 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 handleCartAfter: values.handleCartAfter
             },
             success: function(response) {
-                var result = Ext.decode(response.responseText);
-
                 message = Ext.String.format('abandoned shopping cart handling reconfigured successfully!', '');
                 Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
             },

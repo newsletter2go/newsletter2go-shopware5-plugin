@@ -21,7 +21,6 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
         var me = this,
             data = me.record;
         me.disabled = !data['testConnection'];
-
         me.title = me.snippets.title;
         me.items = me.createForm();
         me.registerEvents();
@@ -37,7 +36,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
             labelText,
             buttonText,
             data = me.record;
-        if (data.trackCarts === '1') {
+        if (data['trackCarts'] === '1') {
             labelText = ' Enabled';
             buttonText = 'Disable Tracking';
         } else {
