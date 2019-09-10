@@ -25,7 +25,6 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                         url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
                         method: 'POST',
                         success: function(response) {
-                            console.log(response);
                             var result = Ext.decode(response.responseText);
                             if (result.success && result.data != null) {
                                 result.data['mailings'].forEach(function(element) {
@@ -143,6 +142,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             success: function(response) {
                 let message = Ext.String.format('Newsletter2Go account disconnected successfully!', '');
                 Shopware.Notification.createGrowlMessage('Success!', message, 'new message');
+                record.testConnection = false;
 
                 let connectWidget = Ext.ComponentQuery.query('connect-nl2go')[0];
                 let button = connectWidget.getComponent('nl2goConnectionButton');

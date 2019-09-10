@@ -33,7 +33,6 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
             labelColor,
             companyInfo,
             data = me.record;
-            console.log("me.record", data);
         if (!data['testConnection']) {
             labelText = ' Disconnected';
             buttonText = 'Click here to connect';
