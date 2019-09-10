@@ -56,6 +56,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
             {
                 xtype: 'button',
                 text: buttonText,
+                itemId: 'nl2goConnectionButton',
                 style: 'margin-bottom: 5px',
                 handler: function () {
                     if (!data['testConnection']) {
