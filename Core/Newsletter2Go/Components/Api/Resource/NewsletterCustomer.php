@@ -115,7 +115,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
+        $customers = $this->fixCustomers($customers, $billingAddressField, $fields, $subscribed);
 
         return array('data' => $customers);
     }
@@ -387,7 +387,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
+        $customers = $this->fixCustomers($customers, $billingAddressField, $fields, $subscribed);
 
         return array('data' => $customers);
     }
@@ -398,10 +398,11 @@ class NewsletterCustomer extends Resource
      * @param array $customers
      * @param $billingAddressField
      * @param string[] $fields
+     * @param bool $subscribed
      *
      * @return array
      */
-    private function fixCustomers($customers, $billingAddressField, $fields)
+    private function fixCustomers($customers, $billingAddressField, $fields, $subscribed)
     {
 
         if (empty($customers)) {
@@ -412,11 +413,8 @@ class NewsletterCustomer extends Resource
         $state = $this->getState();
 
         $subscriberMails = array();
-
-        $fillSubscribeField = in_array('subscribed', $fields, true);
-
         //we need all subscribers to determine, which customers are subscribed
-        if ($fillSubscribeField) {
+        if ($subscribed) {
             $emails = array_column($customers, 'email');
             $placeholders = implode(', ', array_fill(0, count($emails), '?'));
             $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email IN ($placeholders)";
@@ -427,8 +425,13 @@ class NewsletterCustomer extends Resource
         }
 
         foreach ($customers as &$customer) {
-            if ($fillSubscribeField) {
-                $customer['subscribed'] = in_array($customer['email'], $subscriberMails);
+            if ($subscribed) {
+                $inSubscriberList = in_array($customer['email'], $subscriberMails);
+                if($inSubscriberList){
+                    $customer['subscribed'] = 1;
+                }else{
+                    unset($customers[$customer]);
+                }
             }
 
             /** @var array $customerBilling */
