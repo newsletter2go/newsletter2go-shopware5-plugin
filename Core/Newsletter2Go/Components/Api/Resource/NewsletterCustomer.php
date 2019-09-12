@@ -115,7 +115,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
+        $customers = $this->fixCustomers($customers, $billingAddressField, $fields, $subscribed);
 
         return array('data' => $customers);
     }
@@ -387,7 +387,7 @@ class NewsletterCustomer extends Resource
 
         $customers = $pagination->getIterator()->getArrayCopy();
 
-        $customers = $this->fixCustomers($customers, $billingAddressField, $fields);
+        $customers = $this->fixCustomers($customers, $billingAddressField, $fields, $subscribed);
 
         return array('data' => $customers);
     }
@@ -398,10 +398,11 @@ class NewsletterCustomer extends Resource
      * @param array $customers
      * @param $billingAddressField
      * @param string[] $fields
+     * @param bool $subscribed
      *
      * @return array
      */
-    private function fixCustomers($customers, $billingAddressField, $fields)
+    private function fixCustomers($customers, $billingAddressField, $fields, $subscribed)
     {
 
         if (empty($customers)) {
@@ -412,23 +413,27 @@ class NewsletterCustomer extends Resource
         $state = $this->getState();
 
         $subscriberMails = array();
-
-        $fillSubscribeField = in_array('subscribed', $fields, true);
-
         //we need all subscribers to determine, which customers are subscribed
-        if ($fillSubscribeField) {
-            $emails = array_column($customers, 'email');
-            $placeholders = implode(', ', array_fill(0, count($emails), '?'));
-            $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email IN ($placeholders)";
-            $subscribers = Shopware()->Db()->fetchAll($sql, $emails);
-            if (count($subscribers) > 0) {
-                $subscriberMails = array_column($subscribers, 'email');
-            }
+        $emails = array_column($customers, 'email');
+        $placeholders = implode(', ', array_fill(0, count($emails), '?'));
+        $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email IN ($placeholders)";
+        $subscribers = Shopware()->Db()->fetchAll($sql, $emails);
+        if (count($subscribers) > 0) {
+            $subscriberMails = array_column($subscribers, 'email');
         }
 
+        $fixedCustomers = array();
+
         foreach ($customers as &$customer) {
-            if ($fillSubscribeField) {
-                $customer['subscribed'] = in_array($customer['email'], $subscriberMails);
+            $inSubscriberList = in_array($customer['email'], $subscriberMails);
+            if($inSubscriberList){
+                $customer['subscribed'] = 1;
+            }else{
+                $customer['subscribed'] = 0;
+            }
+
+            if($subscribed && !$inSubscriberList && $customer['subscribed'] == 0){
+                continue;
             }
 
             /** @var array $customerBilling */
@@ -496,9 +501,10 @@ class NewsletterCustomer extends Resource
                 $customer['attribute'] = $this->getCustomerCustomFields($customer);
             }
 
+            $fixedCustomers[] = $customer;
         }
 
-        return $customers;
+        return $fixedCustomers;
     }
 
     private function getCustomFields()
