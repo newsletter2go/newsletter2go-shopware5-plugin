@@ -433,7 +433,6 @@ class NewsletterCustomer extends Resource
             }
 
             if($subscribed && !$inSubscriberList && $customer['subscribed'] == 0){
-                unset($customer);
                 continue;
             }
 
