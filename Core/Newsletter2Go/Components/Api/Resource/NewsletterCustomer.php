@@ -299,10 +299,7 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.title', 'Title');
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
-        if (version_compare(Shopware()->Container()->get('config')->get('version'), '5.2.0', '>=') && Shopware()
-                ->Container()
-                ->get('config')
-                ->get('version') !== '___VERSION___') {
+        if ($this->compareShopwareVersion('5.2.0')) {
             $fields[] = $this->createField('number', 'Customer number');
             $fields[] = $this->createField('salutation', 'Customer salutation');
             $fields[] = $this->createField('firstname', 'Customer firstname');
