@@ -414,24 +414,27 @@ class NewsletterCustomer extends Resource
 
         $subscriberMails = array();
         //we need all subscribers to determine, which customers are subscribed
-        if ($subscribed) {
-            $emails = array_column($customers, 'email');
-            $placeholders = implode(', ', array_fill(0, count($emails), '?'));
-            $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email IN ($placeholders)";
-            $subscribers = Shopware()->Db()->fetchAll($sql, $emails);
-            if (count($subscribers) > 0) {
-                $subscriberMails = array_column($subscribers, 'email');
-            }
+        $emails = array_column($customers, 'email');
+        $placeholders = implode(', ', array_fill(0, count($emails), '?'));
+        $sql = "SELECT email FROM s_campaigns_mailaddresses WHERE email IN ($placeholders)";
+        $subscribers = Shopware()->Db()->fetchAll($sql, $emails);
+        if (count($subscribers) > 0) {
+            $subscriberMails = array_column($subscribers, 'email');
         }
 
+        $fixedCustomers = array();
+
         foreach ($customers as &$customer) {
-            if ($subscribed) {
-                $inSubscriberList = in_array($customer['email'], $subscriberMails);
-                if($inSubscriberList){
-                    $customer['subscribed'] = 1;
-                }else{
-                    unset($customers[$customer]);
-                }
+            $inSubscriberList = in_array($customer['email'], $subscriberMails);
+            if($inSubscriberList){
+                $customer['subscribed'] = 1;
+            }else{
+                $customer['subscribed'] = 0;
+            }
+
+            if($subscribed && !$inSubscriberList && $customer['subscribed'] == 0){
+                unset($customer);
+                continue;
             }
 
             /** @var array $customerBilling */
@@ -499,9 +502,10 @@ class NewsletterCustomer extends Resource
                 $customer['attribute'] = $this->getCustomerCustomFields($customer);
             }
 
+            $fixedCustomers[] = array_merge($fixedCustomers, $customer);
         }
 
-        return $customers;
+        return $fixedCustomers;
     }
 
     private function getCustomFields()
