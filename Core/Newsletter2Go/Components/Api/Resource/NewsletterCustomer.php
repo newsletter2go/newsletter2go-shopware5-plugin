@@ -501,7 +501,7 @@ class NewsletterCustomer extends Resource
                 $customer['attribute'] = $this->getCustomerCustomFields($customer);
             }
 
-            $fixedCustomers[] = array_merge($fixedCustomers, $customer);
+            $fixedCustomers[] = $customer;
         }
 
         return $fixedCustomers;
