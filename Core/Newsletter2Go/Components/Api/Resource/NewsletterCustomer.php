@@ -62,7 +62,7 @@ class NewsletterCustomer extends Resource
     ) {
         $this->checkPrivilege('read');
 
-        $useAddressModel = $this->useAddressModel();
+        $useAddressModel = $this->compareShopwareVersion('5.3.0');
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
@@ -80,7 +80,7 @@ class NewsletterCustomer extends Resource
 
         if (!empty($arrangedFields['attribute'])) {
             $arrangedFields['attribute'][] = 'id';
-            $builder->leftJoin('customer.attribute' , 'attribute');
+            $builder->leftJoin('customer.attribute', 'attribute');
             $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
         }
 
@@ -299,7 +299,7 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.title', 'Title');
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
-        if (\Shopware::VERSION >= '5.2') {
+        if ($this->compareShopwareVersion('5.2.0')) {
             $fields[] = $this->createField('number', 'Customer number');
             $fields[] = $this->createField('salutation', 'Customer salutation');
             $fields[] = $this->createField('firstname', 'Customer firstname');
@@ -332,7 +332,7 @@ class NewsletterCustomer extends Resource
         $offset = null,
         $subscribed = false
     ) {
-        $useAddressModel = $this->useAddressModel();
+        $useAddressModel = $this->compareShopwareVersion('5.3.0');
         $billingAddressField = $useAddressModel ? 'defaultBillingAddress' : 'billing';
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
@@ -360,7 +360,7 @@ class NewsletterCustomer extends Resource
 
         if (!empty($arrangedFields['attribute'])) {
             $arrangedFields['attribute'][] = 'id';
-            $builder->leftJoin('customer.attribute' , 'attribute');
+            $builder->leftJoin('customer.attribute', 'attribute');
             $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
         }
 
@@ -404,7 +404,7 @@ class NewsletterCustomer extends Resource
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
 
-        if(empty($customers)){
+        if (empty($customers)) {
             return $customers;
         }
 
@@ -465,7 +465,7 @@ class NewsletterCustomer extends Resource
             if (in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true)) {
                 /** @var $birthday \DateTime */
                 $birthday = null;
-                if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
+                if ($this->compareShopwareVersion('5.2.0') && $customer['birthday'] !== null) {
                     $birthday = $customer['birthday'];
                 } else {
                     if ($customerBilling['birthday'] !== null) {
@@ -481,7 +481,7 @@ class NewsletterCustomer extends Resource
                 unset($customer['id']);
             }
 
-            if ($this->useAddressModel()) {
+            if ($this->compareShopwareVersion('5.3.0')) {
                 foreach (static::$addressModelColumnMap as $returnField => $queriedField) {
                     if (isset($customerBilling[$queriedField])) {
                         $customerBilling[$returnField] = $customerBilling[$queriedField];
@@ -492,7 +492,7 @@ class NewsletterCustomer extends Resource
 
             $customer['billing'] = $customerBilling;
 
-            if (\Shopware::VERSION >= '5.2') {
+            if ($this->compareShopwareVersion('5.2.0')) {
                 $customer['attribute'] = $this->getCustomerCustomFields($customer);
             }
 
@@ -508,9 +508,13 @@ class NewsletterCustomer extends Resource
         try {
             $crudService = Shopware()->Container()->get('shopware_attribute.crud_service');
             $customerCustomAttributesList = $crudService->getList('s_user_attributes');
-            $unwantedFields =  array('id', 'userID');
+            $unwantedFields = array('id', 'userID');
             $datatypes = array(
-                'boolean', 'date', 'integer', 'double', 'datetime'
+                'boolean',
+                'date',
+                'integer',
+                'double',
+                'datetime'
             );
             foreach ($customerCustomAttributesList as $attribute) {
 
@@ -520,9 +524,16 @@ class NewsletterCustomer extends Resource
                     continue;
                 }
 
-                $type = in_array($attribute->getColumnType(), $datatypes) ? ucfirst($attribute->getColumnType()) : 'String';
+                $type = in_array($attribute->getColumnType(), $datatypes) ? ucfirst(
+                    $attribute->getColumnType()
+                ) : 'String';
 
-                $fields[] =  $this->createField('attribute.' . $columnName, $attribute->getLabel(), $attribute->getLabel(), $type);
+                $fields[] = $this->createField(
+                    'attribute.' . $columnName,
+                    $attribute->getLabel(),
+                    $attribute->getLabel(),
+                    $type
+                );
             }
 
             if (is_null($fields)) {
@@ -626,7 +637,7 @@ class NewsletterCustomer extends Resource
             'country' => array(),
             'attribute' => array()
         );
-        $useAddressModel = $this->useAddressModel();
+        $useAddressModel = $this->compareShopwareVersion('5.3.0');
 
         foreach ($fields as $field) {
             $parts = explode('.', $field);
@@ -645,14 +656,14 @@ class NewsletterCustomer extends Resource
                 case 'subscribed':
                     break;
                 case 'birthday':
-                    if (\Shopware::VERSION >= '5.2') {
+                    if ($this->compareShopwareVersion('5.2.0')) {
                         $result['customer'][] = $field;
                     } else {
                         $result['billing'][] = $field;
                     }
                     break;
                 case 'attribute':
-                    if (\Shopware::VERSION >= '5.2') {
+                    if ($this->compareShopwareVersion('5.2.0')) {
                         $result['attribute'][] = $parts[1];
                     }
                     break;
@@ -669,8 +680,11 @@ class NewsletterCustomer extends Resource
      * @see https://github.com/shopware/shopware/commit/743d006fd9b362a4bcbe5b12b458d54551520ba8
      * @return bool
      */
-    private function useAddressModel()
+    private function compareShopwareVersion($compareVersion)
     {
-        return \Shopware::VERSION >= '5.3';
+        return version_compare(Shopware()->Container()->get('config')->get('version'), $compareVersion, '>=') && Shopware()
+                ->Container()
+                ->get('config')
+                ->get('version') !== '___VERSION___';
     }
 }

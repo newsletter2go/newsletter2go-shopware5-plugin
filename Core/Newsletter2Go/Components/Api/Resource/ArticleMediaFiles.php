@@ -29,7 +29,10 @@ class ArticleMediaFiles extends Resource
 
         $mediaPath = Shopware()->Modules()->System()->sPathArticleImg;
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
-        $version = \Shopware::VERSION;
+        $version = Shopware()
+                ->Container()
+                ->get('config')
+                ->get('version');
         $thumbnailSizes = $this->getArticleThumbnailSizes();
         $data = array(
             'images' => array(),
@@ -45,11 +48,11 @@ class ArticleMediaFiles extends Resource
                 $imageExt = $image['extension'];
                 $img = $imagePath . '.' . $imageExt;
 
-                $data['images'][] = version_compare($version, self::COMPARE_VERSION) >= 0 ?
+                $data['images'][] = version_compare($version, self::COMPARE_VERSION) >= 0 && $version  !== '___VERSION___' ?
                     $mediaService->getUrl('media/image/' . $img) : $mediaPath . $img;
 
                 foreach ($thumbnailSizes as $ts) {
-                    $data['thumbnails'][] = version_compare($version, self::COMPARE_VERSION) >= 0 ?
+                    $data['thumbnails'][] = version_compare($version, self::COMPARE_VERSION) >= 0 && $version  !== '___VERSION___' ?
                         $mediaService->getUrl('media/image/thumbnail/' . $imagePath . "_$ts." . $imageExt) :
                         $mediaPath . 'thumbnail/' . $imagePath . "_$ts." . $imageExt;
 
