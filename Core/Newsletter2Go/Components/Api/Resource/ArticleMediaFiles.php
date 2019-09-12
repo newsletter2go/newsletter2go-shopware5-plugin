@@ -29,7 +29,10 @@ class ArticleMediaFiles extends Resource
 
         $mediaPath = Shopware()->Modules()->System()->sPathArticleImg;
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
-        $version = \Shopware::VERSION;
+        $version = Shopware()
+                ->Container()
+                ->get('config')
+                ->get('version') !== '___VERSION___';
         $thumbnailSizes = $this->getArticleThumbnailSizes();
         $data = array(
             'images' => array(),

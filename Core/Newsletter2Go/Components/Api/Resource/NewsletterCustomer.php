@@ -80,7 +80,7 @@ class NewsletterCustomer extends Resource
 
         if (!empty($arrangedFields['attribute'])) {
             $arrangedFields['attribute'][] = 'id';
-            $builder->leftJoin('customer.attribute' , 'attribute');
+            $builder->leftJoin('customer.attribute', 'attribute');
             $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
         }
 
@@ -299,7 +299,10 @@ class NewsletterCustomer extends Resource
         $fields[] = $this->createField('billing.title', 'Title');
         $fields[] = $this->createField('birthday', 'Birthday', '', 'Date');
 
-        if (\Shopware::VERSION >= '5.2') {
+        if (version_compare(Shopware()->Container()->get('config')->get('version'), '5.2.0', '>=') && Shopware()
+                ->Container()
+                ->get('config')
+                ->get('version') !== '___VERSION___') {
             $fields[] = $this->createField('number', 'Customer number');
             $fields[] = $this->createField('salutation', 'Customer salutation');
             $fields[] = $this->createField('firstname', 'Customer firstname');
@@ -360,7 +363,7 @@ class NewsletterCustomer extends Resource
 
         if (!empty($arrangedFields['attribute'])) {
             $arrangedFields['attribute'][] = 'id';
-            $builder->leftJoin('customer.attribute' , 'attribute');
+            $builder->leftJoin('customer.attribute', 'attribute');
             $selectFields[] = 'PARTIAL attribute.{' . implode(',', $arrangedFields['attribute']) . '}';
         }
 
@@ -404,7 +407,7 @@ class NewsletterCustomer extends Resource
     private function fixCustomers($customers, $billingAddressField, $fields)
     {
 
-        if(empty($customers)){
+        if (empty($customers)) {
             return $customers;
         }
 
@@ -465,7 +468,10 @@ class NewsletterCustomer extends Resource
             if (in_array('billing.birthday', $fields, true) || in_array('birthday', $fields, true)) {
                 /** @var $birthday \DateTime */
                 $birthday = null;
-                if (\Shopware::VERSION >= '5.2' && $customer['birthday'] !== null) {
+                if (version_compare(Shopware()->Container()->get('config')->get('version'), '5.2.0', '>=') && Shopware()
+                        ->Container()
+                        ->get('config')
+                        ->get('version') !== '___VERSION___' && $customer['birthday'] !== null) {
                     $birthday = $customer['birthday'];
                 } else {
                     if ($customerBilling['birthday'] !== null) {
@@ -492,7 +498,10 @@ class NewsletterCustomer extends Resource
 
             $customer['billing'] = $customerBilling;
 
-            if (\Shopware::VERSION >= '5.2') {
+            if (version_compare(Shopware()->Container()->get('config')->get('version'), '5.2.0', '>=') && Shopware()
+                    ->Container()
+                    ->get('config')
+                    ->get('version') !== '___VERSION___') {
                 $customer['attribute'] = $this->getCustomerCustomFields($customer);
             }
 
@@ -508,9 +517,13 @@ class NewsletterCustomer extends Resource
         try {
             $crudService = Shopware()->Container()->get('shopware_attribute.crud_service');
             $customerCustomAttributesList = $crudService->getList('s_user_attributes');
-            $unwantedFields =  array('id', 'userID');
+            $unwantedFields = array('id', 'userID');
             $datatypes = array(
-                'boolean', 'date', 'integer', 'double', 'datetime'
+                'boolean',
+                'date',
+                'integer',
+                'double',
+                'datetime'
             );
             foreach ($customerCustomAttributesList as $attribute) {
 
@@ -520,9 +533,16 @@ class NewsletterCustomer extends Resource
                     continue;
                 }
 
-                $type = in_array($attribute->getColumnType(), $datatypes) ? ucfirst($attribute->getColumnType()) : 'String';
+                $type = in_array($attribute->getColumnType(), $datatypes) ? ucfirst(
+                    $attribute->getColumnType()
+                ) : 'String';
 
-                $fields[] =  $this->createField('attribute.' . $columnName, $attribute->getLabel(), $attribute->getLabel(), $type);
+                $fields[] = $this->createField(
+                    'attribute.' . $columnName,
+                    $attribute->getLabel(),
+                    $attribute->getLabel(),
+                    $type
+                );
             }
 
             if (is_null($fields)) {
@@ -645,14 +665,20 @@ class NewsletterCustomer extends Resource
                 case 'subscribed':
                     break;
                 case 'birthday':
-                    if (\Shopware::VERSION >= '5.2') {
+                    if (version_compare(Shopware()->Container()->get('config')->get('version'), '5.2.0', '>=') && Shopware()
+                            ->Container()
+                            ->get('config')
+                            ->get('version') !== '___VERSION___') {
                         $result['customer'][] = $field;
                     } else {
                         $result['billing'][] = $field;
                     }
                     break;
                 case 'attribute':
-                    if (\Shopware::VERSION >= '5.2') {
+                    if (version_compare(Shopware()->Container()->get('config')->get('version'), '5.2.0', '>=') && Shopware()
+                            ->Container()
+                            ->get('config')
+                            ->get('version') !== '___VERSION___') {
                         $result['attribute'][] = $parts[1];
                     }
                     break;
@@ -671,6 +697,9 @@ class NewsletterCustomer extends Resource
      */
     private function useAddressModel()
     {
-        return \Shopware::VERSION >= '5.3';
+        return version_compare(Shopware()->Container()->get('config')->get('version'), '5.3.0', '>=') && Shopware()
+                ->Container()
+                ->get('config')
+                ->get('version') !== '___VERSION___';
     }
 }
