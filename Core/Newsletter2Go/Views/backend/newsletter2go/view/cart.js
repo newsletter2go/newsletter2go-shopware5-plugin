@@ -114,6 +114,16 @@ Ext.define('Shopware.apps.Newsletter2go.view.Cart', {
                 }
             },
         ];
+    },
+    updateContents() {
+        var me = this,
+            data = me.record;
+        me.setDisabled(!data.testConnection);
+        let hoursCombobox = me.getComponent('nl2goCartHoursCombobox');
+        let mailingsCombobox = me.getComponent('nl2goCartMailingsCombobox');
+        hoursCombobox.setValue(data['handle_cart_as_abandoned_after']/60);
+        mailingsCombobox.getStore().loadData(data.store);
+        mailingsCombobox.setValue(data['newsletter_id']);
     }
 });
 //{/block}

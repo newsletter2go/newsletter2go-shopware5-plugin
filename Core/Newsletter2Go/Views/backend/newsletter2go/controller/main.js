@@ -7,69 +7,62 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             testConnection = false,
             companyName = null,
             companyBillAddress = null,
-            handleCartAsAbandonedAfter = null,
-            newsletterId = null,
             store = [];
 
         Ext.Ajax.request({
-            url: '{url controller="Newsletter2go" action="testConnection"}',
+            url: '{url controller="Newsletter2go" action="getData"}',
             method: 'POST',
             success: function(response) {
                 var result = Ext.decode(response.responseText);
-                if (result.success) {
-                    testConnection = true;
-                    companyName = result.data['company_name'];
-                    companyBillAddress = result.data['company_bill_address'];
+                result.data['testConnection'] = testConnection;
+                result.data['company_name'] = companyName;
+                result.data['company_bill_address'] = companyBillAddress;
+                result.data['store'] = store;
 
-                    Ext.Ajax.request({
-                        url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
-                        method: 'POST',
-                        success: function(response) {
-                            var result = Ext.decode(response.responseText);
-                            if (result.success && result.data != null) {
-                                result.data['mailings'].forEach(function(element) {
-                                    store.push([element.id, element.name]);
-                                });
-                                newsletterId = result.data['userIntegration']['newsletter_id'];
-                                handleCartAsAbandonedAfter = result.data['userIntegration']['handle_cart_as_abandoned_after'];
-                            }
+                me.mainWindow = me.getView('Main').create({
+                    record: result.data
+                }).show();
+
+                Ext.Ajax.request({
+                    url: '{url controller="Newsletter2go" action="testConnection"}',
+                    method: 'POST',
+                    success: function(response) {
+                        var result = Ext.decode(response.responseText);
+                        console.log("testConnection", result);
+                        if (result.success) {
+                            me.mainWindow.record.testConnection = true;
+                            me.mainWindow.record.company_name = result.data['company_name'];
+                            me.mainWindow.record.company_bill_address = result.data['company_bill_address'];
 
                             Ext.Ajax.request({
-                                url: '{url controller="Newsletter2go" action="getData"}',
+                                url: '{url controller="Newsletter2go" action="fetchCartMailings"}',
                                 method: 'POST',
-                                success: function(response) {
+                                success: function (response) {
                                     var result = Ext.decode(response.responseText);
-                                    result.data['testConnection'] = testConnection;
-                                    result.data['company_name'] = companyName;
-                                    result.data['company_bill_address'] = companyBillAddress;
-                                    result.data['handle_cart_as_abandoned_after'] = handleCartAsAbandonedAfter;
-                                    result.data['newsletter_id'] = newsletterId;
-                                    result.data['store'] = store;
-
-                                    me.mainWindow = me.getView('Main').create({
-                                        record: result.data
-                                    }).show();
+                                    if (result.success && result.data != null) {
+                                        result.data['mailings'].forEach(function (element) {
+                                            store.push([element.id, element.name]);
+                                        });
+                                        me.mainWindow.record.newsletter_id = result.data['userIntegration']['newsletter_id'];
+                                        me.mainWindow.record.handle_cart_as_abandoned_after = result.data['userIntegration']['handle_cart_as_abandoned_after'];
+                                        me.mainWindow.record.store = store;
+                                        // update the widgets
+                                        let cartWidget = Ext.ComponentQuery.query('cart-nl2go')[0];
+                                        let trackingWidget = Ext.ComponentQuery.query('tracking-nl2go')[0];
+                                        cartWidget.updateContents();
+                                        trackingWidget.updateContents();
+                                    }
                                 }
                             });
                         }
-                    });
-                } else {
-                    Ext.Ajax.request({
-                        url: '{url controller="Newsletter2go" action="getData"}',
-                        method: 'POST',
-                        success: function(response) {
-                            var result = Ext.decode(response.responseText);
-                            result.data['testConnection'] = testConnection;
-                            result.data['company_name'] = companyName;
-                            result.data['company_bill_address'] = companyBillAddress;
-                            result.data['store'] = store;
+                        // enable and update the connect widget after testing connection
+                        let connectWidget = Ext.ComponentQuery.query('connect-nl2go')[0];
+                        connectWidget.setDisabled(false);
+                        connectWidget.updateContents();
 
-                            me.mainWindow = me.getView('Main').create({
-                                record: result.data
-                            }).show();
-                        }
-                    });
-                }
+                    }
+                });
+
             }
         });
 

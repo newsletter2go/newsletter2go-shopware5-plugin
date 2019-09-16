@@ -64,6 +64,11 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
 
             }
         ];
+    },
+    updateContents() {
+        var me = this,
+            data = me.record;
+        me.setDisabled(!data.testConnection);
     }
 });
 //{/block}

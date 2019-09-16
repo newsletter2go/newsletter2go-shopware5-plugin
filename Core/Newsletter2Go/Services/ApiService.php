@@ -243,7 +243,7 @@ class ApiService
         $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $this->getAccessToken()];
         $params = [
             'newsletter_id' => $transactionMailingId,
-            'handle_cart_as_abandoned_after' => $handleCartAfter
+            'handle_cart_as_abandoned_after' => $handleCartAfter*60
         ];
         $result = $this->httpRequest(
             'PATCH',

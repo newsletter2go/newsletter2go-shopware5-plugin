@@ -66,6 +66,30 @@ Ext.define('Shopware.apps.Newsletter2go.view.Connect', {
                 }
             }
         ];
+    },
+    updateContents: function () {
+        var me = this,
+            labelText,
+            buttonText,
+            labelColor,
+            companyInfo,
+            data = me.record;
+
+        if (!data['testConnection']) {
+            labelText = ' Disconnected';
+            buttonText = 'Click here to connect';
+            labelColor = '#be2322';
+            companyInfo = '';
+        } else {
+            labelText = ' Connected';
+            buttonText = 'Click here to disconnect';
+            labelColor = '#31be45';
+            companyInfo = ' to ' + data['company_name'] + ', ' + data['company_bill_address'];
+        }
+        let button = me.getComponent('nl2goConnectionButton');
+        let conLabel = me.getComponent('nl2goConnectionStatusLabel');
+        button.setText(buttonText);
+        conLabel.update('<p>Status:<span style="color:' + labelColor + '">' + labelText  + companyInfo + '</span></p>');
     }
 });
 //{/block}
