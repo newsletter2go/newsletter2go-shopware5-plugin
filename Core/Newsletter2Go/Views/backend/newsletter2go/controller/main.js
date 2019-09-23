@@ -138,10 +138,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                 record.testConnection = false;
 
                 let connectWidget = Ext.ComponentQuery.query('connect-nl2go')[0];
-                let button = connectWidget.getComponent('nl2goConnectionButton');
-                let conLabel = connectWidget.getComponent('nl2goConnectionStatusLabel');
-                button.setText('Click here to connect');
-                conLabel.update('<p>Status:<span style="color:#be2322"> Disconnected</span></p>');
+                connectWidget.updateContents();
 
                 let trackingWidget = Ext.ComponentQuery.query('tracking-nl2go')[0];
                 trackingWidget.setDisabled(true);
