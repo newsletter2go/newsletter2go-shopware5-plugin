@@ -337,15 +337,12 @@ class NewsletterCustomer extends Resource
         $selectFields = array();
         $arrangedFields = $this->arrangeFields($fields);
 
-        $builder = $this->getRepositoryCustomer()
-                        ->createQueryBuilder('customer')
-                        ->innerJoin(
-                            'Shopware\Models\CustomerStream\Mapping',
-                            'mapping',
-                            Expr\Join::INNER_JOIN,
-                            'mapping.customerId = customer.id'
-                        )
-                        ->where('customer.active = true');
+        $builder = $this->getManager()->createQueryBuilder();
+        $builder->select(array('customer'))
+                ->from('Shopware\Models\Customer\Customer', 'customer')
+                ->innerJoin('Shopware\Models\CustomerStream\Mapping', 'mapping')
+                ->where('mapping.customerId = customer.id')
+                ->andWhere('customer.active = true');
 
         if ($group) {
             $builder->andWhere('mapping.streamId = ' . $group);
