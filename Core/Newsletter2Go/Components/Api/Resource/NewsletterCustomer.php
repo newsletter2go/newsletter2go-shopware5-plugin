@@ -342,9 +342,8 @@ class NewsletterCustomer extends Resource
             $builder = $this->getManager()->createQueryBuilder();
             $builder->select(array('customer'))
                     ->from('Shopware\Models\Customer\Customer', 'customer')
-                    ->innerJoin('Shopware\Models\CustomerStream\Mapping', Expr\Join::WITH, 'mapping')
-                    ->where('mapping.customerId = customer.id')
-                    ->andWhere('customer.active = true');
+                    ->innerJoin('Shopware\Models\CustomerStream\Mapping', Expr\Join::WITH, 'mapping', 'mapping.customerId = customer.id')
+                    ->where('customer.active = true');
 
         }else{
             $builder = $this->getRepositoryCustomer()
