@@ -53,7 +53,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
             $data[$element->getName()] = $element->getValue();
         }
 
-        $data['baseUrl'] = Shopware()->Modules()->Core()->sRewriteLink();
+        $data['baseUrl'] = $this->getShopUrl();
+
         $this->View()->assign(
             array(
                 'success' => true,
@@ -95,10 +96,10 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     private function createApiUser()
-    {   
+    {
         $enviroment = new Environment();
 	    $cryptography = new Cryptography($enviroment);
-	    
+
         $apiUser = new \Shopware\Models\User\User();
         $apiUser->setName('newsletter2goApiUser');
         $apiUser->setUsername('newsletter2goApiUser');
@@ -189,6 +190,26 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $element->setValue($value);
         $this->em->persist($element);
         $this->em->flush();
+    }
+
+    public function getShopUrl()
+    {
+        try {
+            $em = $this->get('models');
+            /** @var \Doctrine\ORM\EntityRepository $repo */
+            $repo = $em->getRepository(Shopware\Models\Shop\Shop::class);
+            /** @var \Shopware\Models\Shop\Shop $shop */
+            $shop = $repo->findOneBy(['id' => 1]);
+
+            if ($shop) {
+                return ($shop->getSecure() ? 'https' : 'http') . '://' . $shop->getHost() . '/';
+            }
+
+        } catch (Exception $exception) {
+
+        }
+
+        return Shopware()->Modules()->Core()->sRewriteLink();
     }
 
 }

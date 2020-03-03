@@ -21,7 +21,7 @@
             'name': '{$sBasketItem.articlename}',
             'sku': '{$sBasketItem.ordernumber}',
             'category': '{$helper->getArticleCategories($sBasketItem.articleID)}',
-            'price': '{$sBasketItem.price}',
+            'price': '{floatval(str_replace(',', '.', str_replace('.', '', $sBasketItem.price)))}',
             'quantity': '{$sBasketItem.quantity}'
         } );
         {/if}

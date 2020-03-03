@@ -346,7 +346,7 @@ class NewsletterCustomer extends Resource
                         'Shopware\Models\CustomerStream\Mapping',
                         'mapping',
                         Expr\Join::WITH,
-                        'mapping.customerId = customer.id'
+                        'customer.id = mapping.customerId'
                     )
                     ->where('customer.active = true');
 
