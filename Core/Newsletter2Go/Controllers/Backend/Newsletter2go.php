@@ -197,7 +197,7 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         try {
             $em = $this->get('models');
             /** @var \Doctrine\ORM\EntityRepository $repo */
-            $repo = $em->getRepository(Shopware\Models\Shop\Shop::class);
+            $repo = $em->getRepository('Shopware\Models\Shop\Shop');
             /** @var \Shopware\Models\Shop\Shop $shop */
             $shop = $repo->findOneBy(['id' => 1]);
 
