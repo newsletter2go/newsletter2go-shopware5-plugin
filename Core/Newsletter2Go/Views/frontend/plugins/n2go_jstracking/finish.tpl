@@ -9,7 +9,7 @@
         n2g('create', '{$companyId}');
         n2g('ecommerce:addTransaction', {
             'id': '{$sAddresses.billing.orderID}',
-            'affiliation': '{$sShopname}',
+            'affiliation': '{addslashes($sShopname)}',
             'revenue': '{$sAmount}',
             'shipping': '{$sShippingcosts}',
             'tax': '{$sAmountTax}'
@@ -18,9 +18,9 @@
         {if $sBasketItem.articleID}
         n2g('ecommerce:addItem', {
             'id': '{$sAddresses.billing.orderID}',
-            'name': '{$sBasketItem.articlename}',
+            'name': '{addslashes($sBasketItem.articlename)}',
             'sku': '{$sBasketItem.ordernumber}',
-            'category': '{$helper->getArticleCategories($sBasketItem.articleID)}',
+            'category': '{addslashes($helper->getArticleCategories($sBasketItem.articleID))}',
             'price': '{floatval(str_replace(',', '.', str_replace('.', '', $sBasketItem.price)))}',
             'quantity': '{$sBasketItem.quantity}'
         } );
