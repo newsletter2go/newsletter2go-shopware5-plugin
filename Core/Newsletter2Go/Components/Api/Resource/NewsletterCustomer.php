@@ -121,6 +121,20 @@ class NewsletterCustomer extends Resource
     }
 
     /**
+     * @param string $fieldName
+     *
+     * @return string
+     */
+    private function convertToCamelCase($fieldName)
+    {
+        $camelCasedName = preg_replace_callback('/(^|_|\.)+(.)/', function ($match) {
+            return ('.' === $match[1] ? '_' : '').strtoupper($match[2]);
+        }, $fieldName);
+
+        return lcfirst($camelCasedName);
+    }
+
+    /**
      * @param string $email
      * @param array $params
      *
@@ -539,7 +553,7 @@ class NewsletterCustomer extends Resource
             );
             foreach ($customerCustomAttributesList as $attribute) {
 
-                $columnName = $attribute->getColumnName();
+                $columnName = $this->convertToCamelCase($attribute->getColumnName());
 
                 if (in_array($columnName, $unwantedFields)) {
                     continue;
