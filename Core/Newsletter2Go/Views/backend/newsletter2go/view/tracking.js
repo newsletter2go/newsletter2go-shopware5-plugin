@@ -15,11 +15,12 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
         anchor: '100%'
     },
     snippets: {
-        title: '{s name=tracking/title}Tracking{/s}'
+        title: '{s name=tracking/title}Conversion Tracking{/s}'
     },
     initComponent: function () {
-        var me = this;
-
+        var me = this,
+            data = me.record;
+        me.disabled = !data['testConnection'];
         me.title = me.snippets.title;
         me.items = me.createForm();
         me.registerEvents();
@@ -34,7 +35,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
             labelText,
             buttonText,
             data = me.record;
-        if (data.trackOrders === '1') {
+        if (data['trackOrders'] === '1') {
                 labelText = ' Enabled';
                 buttonText = 'Disable Tracking';
         } else {
@@ -46,14 +47,14 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
             {
                 xtype: 'box',
                 style: 'margin-bottom: 5px',
-                itemId: 'nl2goTrackingLabel',
+                itemId: 'nl2goConversionTrackingLabel',
                 html: '<p>Conversion Tracking:<span style="color: #0b6dbe">' + labelText  + '</span></p>'
             },
             {
                 fieldLabel: '{s name=tracking}label{/s}',
                 name: 'tracking',
                 xtype: 'button',
-                itemId: 'nl2goTrackingButton',
+                itemId: 'nl2goConversionTrackingButton',
                 cls: 'primary small',
                 text: buttonText,
                 style: 'margin-bottom: 5px',
@@ -63,6 +64,11 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
 
             }
         ];
+    },
+    updateContents() {
+        var me = this,
+            data = me.record;
+        me.setDisabled(!data.testConnection);
     }
 });
 //{/block}

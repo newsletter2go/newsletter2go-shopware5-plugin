@@ -1,6 +1,8 @@
 <?php
 
 use Newsletter2Go\Components\Newsletter2GoHelper;
+use Newsletter2Go\Services\ApiService;
+use Newsletter2Go\Services\Configuration;
 
 /**
  * @category  Shopware
@@ -198,6 +200,60 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
     }
 
     /**
+     * Called when the FrontendPostDispatch Event of Checkout controller is triggered
+     *
+     * @param Enlight_Event_EventArgs $args
+     */
+    public function onFrontendPostDispatchCheckout(Enlight_Event_EventArgs $args)
+    {
+        /* @var Enlight_Controller_Request_RequestHttp $request */
+        $request = $args->getRequest();
+        $config = new Configuration();
+        $trackCart = $config->getConfigParam('trackCarts');
+        $actionName = $request->getActionName();
+        if ($trackCart == 1 && ($actionName === 'ajaxCart' || $actionName === 'finish')) {
+            $checkoutController = $args->getSubject();
+            $basket = $checkoutController->getBasket();
+            $products = [];
+            if ($actionName !== 'finish') {
+                foreach ($basket['content'] as $item) {
+                    $products[] = array('id' => $item['articleID'], 'quantity' => $item['quantity']);
+                }
+            }
+            $cartId = Shopware()->Session()->get('sessionId');
+            $customer =  Shopware()->Session()->offsetGet('sUserMail');
+            $shopUrl = Shopware()->Shop()->getHost() . Shopware()->Shop()->getBasePath();
+            $this->sendCart($products, $customer, $shopUrl, $cartId);
+        }
+    }
+
+    public function sendCart($products, $customer, $shopUrl, $cartId)
+    {
+        if ($customer === null || strlen($customer) < 3) {
+            return;
+        }
+        $apiService = new ApiService();
+        $apiService->testConnection();
+        $config = new Configuration();
+
+        $path = str_replace(
+            '{id}',
+            $config->getConfigParam('userIntegrationId'),
+            '/users/integrations/{id}/cart/{external_cart_id}'
+        );
+        $path = str_replace('{external_cart_id}', $cartId, $path);
+
+        $body = [
+            'cart_id' => $cartId,
+            'shopUrl' => $shopUrl,
+            'products' => $products,
+            'customer' => ["email" => $customer]
+        ];
+        $headers = ['Content-Type: application/json', 'Authorization: Bearer ' . $apiService->getAccessToken()];
+        $apiService->httpRequest('PATCH', $path, $body, $headers);
+    }
+
+    /**
      * Event listener function of the Enlight_Controller_Dispatcher_ControllerPath_Backend_Newsletter2go
      * event. This event is fired when shopware trying to access the plugin Newsletter2go controller.
      *
@@ -353,6 +409,7 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->subscribeEvent('Enlight_Controller_Front_StartDispatch', 'onEnlightControllerFrontStartDispatch');
         $this->subscribeEvent('Enlight_Controller_Dispatcher_ControllerPath_Backend_Newsletter2go', 'onGetControllerPathBackendNewsletter2go');
         $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend', 'onFrontendPostDispatch');
+        $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend_Checkout', 'onFrontendPostDispatchCheckout');
     }
 
     /**

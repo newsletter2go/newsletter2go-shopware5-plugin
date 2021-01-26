@@ -1,5 +1,6 @@
 <?php
 
+use Newsletter2Go\Services\Configuration;
 use Shopware\Models\Newsletter2Go\Newsletter2Go;
 use Newsletter2Go\Services\Environment;
 use Newsletter2Go\Services\Cryptography;
@@ -89,6 +90,123 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
         $this->saveConfigParam('trackOrders', $trackOrders);
         $this->em->flush();
         $this->getDataAction();
+    }
+
+    /**
+     * Saves shopping cart tracking in database
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function setCartTrackingAction()
+    {
+        $trackCarts = $this->getConfigParam('trackCarts');
+        $trackCarts = $trackCarts ? 0 : 1;
+        $this->saveConfigParam('trackCarts', $trackCarts);
+        $this->em->flush();
+        $this->getDataAction();
+    }
+
+    /**
+     * test shop connection to n2g api
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function testConnectionAction()
+    {
+        $apiService = new \Newsletter2Go\Services\ApiService();
+        $result = $apiService->testConnection();
+        if ($result['status'] == 200) {
+            $this->View()->assign(
+                array(
+                    'success' => true,
+                    'data' => $result
+                )
+            );
+        } else {
+            $this->View()->assign(
+                array(
+                    'success' => false,
+                )
+            );
+        }
+    }
+
+    public function fetchCartMailingsAction()
+    {
+        $apiService = new \Newsletter2Go\Services\ApiService();
+        $apiService->testConnection();
+        $config = new Configuration();
+        $userIntegration = $apiService->getUserIntegration($config->getConfigParam('userIntegrationId'));
+        $result['mailings'] =  $apiService->getTransactionalMailings($userIntegration['list_id']);
+        $result['userIntegration'] = $userIntegration;
+        $success = (isset($result['status']) && $result['status'] !== null) ? false : true;
+        $this->View()->assign(
+            array(
+                'success' => $success,
+                'data' => $result
+            )
+        );
+    }
+
+    public function setCartMailingPreferencesAction()
+    {
+        $apiService = new \Newsletter2Go\Services\ApiService();
+        $apiService->testConnection();
+        $config = new Configuration();
+        $transactionMailingId = $this->Request()->getParam('transactionMailingId');
+        $handleCartAfter = $this->Request()->getParam('handleCartAfter');
+        $userIntegrationId = $config->getConfigParam('userIntegrationId');
+
+        $result = $apiService->addTransactionMailingToUserIntegration(
+            $userIntegrationId,
+            $transactionMailingId,
+            $handleCartAfter
+        );
+        if ($result['status'] == 200 || $result['status'] == 201) {
+            $this->View()->assign(
+                array(
+                    'success' => true,
+                    'status' => $result
+                )
+            );
+        } else {
+            $this->View()->assign(
+                array(
+                    'success' => false,
+                    'status' => $result
+                )
+            );
+        }
+    }
+
+    /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function deleteConnectedAccountAction() {
+        $connectionDetails = array();
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'companyId')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'userIntegrationId')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'authKey')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'accessToken')
+        );
+        $connectionDetails[] = $this->em->getRepository('Shopware\Models\Newsletter2Go\Newsletter2Go')->findOneBy(
+            array('name' => 'refreshToken')
+        );
+
+        foreach ($connectionDetails as $row) {
+            if ($row) {
+                $this->em->remove($row);
+            }
+        }
+
+        $this->em->flush();
     }
 
     /**

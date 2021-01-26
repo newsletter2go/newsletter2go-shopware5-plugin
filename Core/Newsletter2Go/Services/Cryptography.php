@@ -15,6 +15,7 @@ class Cryptography
 
     /**
      * @param int $length
+     * @return mixed|string|null
      */
     public function generateRandomString($length = 40)
     {
