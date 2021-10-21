@@ -1,6 +1,6 @@
 //{namespace name=backend/newsletter2go/view/main}
 //{block name="backend/newsletter2go/view/main"}
-Ext.define('Shopware.apps.Newsletter2go.view.Main', {
+Ext.define('Shopware.apps.Newsletter2go.view.main.Main', {
     extend: 'Enlight.app.Window',
     alias: 'widget.newsletter2go-main-window',
     layout: 'fit',
@@ -12,14 +12,10 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
     resizable: true,
     stateId: 'Newsletter2goId',
     border: false,
-    snippets: {
-        title: '{s name=config/title} Newsletter2Go {/s}',
-        cancel: '{s name=config/cancel}Cancel{/s}'
-    },
     initComponent: function () {
         var me = this;
         Ext.applyIf(me, {
-            title: me.snippets.title,
+            title: 'Newsletter2Go',
             items: me.getItems(),
             bbar: me.getToolbar()
         });
@@ -45,7 +41,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Main', {
         return [
             '->',
             {
-                text: me.snippets.cancel,
+                text: 'Cancel',
                 cls: 'primary',
                 handler: function () {
                     me.destroy();

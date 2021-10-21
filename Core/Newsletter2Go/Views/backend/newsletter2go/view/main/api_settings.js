@@ -1,6 +1,6 @@
 //{namespace name=backend/newsletter2go/view/api_settings}
 //{block name="backend/newsletter2go/view/api_settings"}
-Ext.define('Shopware.apps.Newsletter2go.view.ApiSettings', {
+Ext.define('Shopware.apps.Newsletter2go.view.main.ApiSettings', {
     extend: 'Ext.form.FieldSet',
     alias: 'widget.api-settings',
     collapsible: true,
@@ -14,13 +14,10 @@ Ext.define('Shopware.apps.Newsletter2go.view.ApiSettings', {
         labelWidth: 160,
         anchor: '100%'
     },
-    snippets: {
-        title: '{s name=general/title}Shop API Access Settings{/s}'
-    },
     initComponent: function () {
         var me = this;
 
-        me.title = me.snippets.title;
+        me.title = 'Shop API Access Settings';
         me.items = me.createForm();
         me.registerEvents();
 
@@ -39,7 +36,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.ApiSettings', {
                 fieldLabel: 'Username',
                 minWidth: 250,
                 readOnly: true,
-                value: data.apiUsername
+                value: 123 //data.apiUsername
             }),
             Ext.create('Ext.form.field.Text', {
                 itemId: 'nl2goShopApiKey',
@@ -47,7 +44,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.ApiSettings', {
                 fieldLabel: 'API Key',
                 minWidth: 250,
                 readOnly: true,
-                value: data.apiKey
+                value: 123 //data.apiKey
             }),
             {
                 xtype: 'button',

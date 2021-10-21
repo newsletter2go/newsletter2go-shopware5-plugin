@@ -1,6 +1,6 @@
 //{namespace name=backend/newsletter2go/view/tracking}
 //{block name="backend/newsletter2go/view/tracking"}
-Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
+Ext.define('Shopware.apps.Newsletter2go.view.main.Tracking', {
     extend: 'Ext.form.FieldSet',
     alias: 'widget.tracking-nl2go',
     collapsible: true,
@@ -14,13 +14,9 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
         labelWidth: 160,
         anchor: '100%'
     },
-    snippets: {
-        title: '{s name=tracking/title}Tracking{/s}'
-    },
     initComponent: function () {
         var me = this;
-
-        me.title = me.snippets.title;
+        me.title = 'Tracking';
         me.items = me.createForm();
         me.registerEvents();
 
@@ -34,7 +30,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Tracking', {
             labelText,
             buttonText,
             data = me.record;
-        if (data.trackOrders === '1') {
+        if (0) {
                 labelText = ' Enabled';
                 buttonText = 'Disable Tracking';
         } else {

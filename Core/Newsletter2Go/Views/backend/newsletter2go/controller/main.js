@@ -29,6 +29,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             }
         });
 
+      me.mainWindow = me.getView('main.Main').create();
+      me.mainWindow.show();
         me.callParent(arguments);
     },
     onApiKeyReset: function () {
@@ -40,7 +42,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             success: function(response) {
                 var result = Ext.decode(response.responseText),
                     users = Ext.ComponentQuery.query('#nl2goShopUsername'),
-                    keys = Ext.ComponentQuery.query('#nl2goShopApiKey'), 
+                    keys = Ext.ComponentQuery.query('#nl2goShopApiKey'),
                     i;
 
                 for (i = 0; i < users.length; i++) {
@@ -82,8 +84,8 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
                     button = Ext.ComponentQuery.query('#nl2goTrackingButton'),
                     label = Ext.ComponentQuery.query('#nl2goTrackingLabel'),
                     i,
-                    labelText = result.data.trackOrders ? ' Enabled' : ' Disabled',
-                    buttonText = result.data.trackOrders ? 'Disable Tracking' : 'Enable Tracking';
+                    labelText = 1 ? ' Enabled' : ' Disabled',
+                    buttonText = 1 ? 'Disable Tracking' : 'Enable Tracking';
 
                 for (i = 0; i < button.length; i++) {
                     button[i].setText(buttonText);
