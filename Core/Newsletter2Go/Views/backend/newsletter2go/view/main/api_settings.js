@@ -36,7 +36,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.ApiSettings', {
                 fieldLabel: 'Username',
                 minWidth: 250,
                 readOnly: true,
-                value: 123 //data.apiUsername
+                value: data.apiUsername
             }),
             Ext.create('Ext.form.field.Text', {
                 itemId: 'nl2goShopApiKey',
@@ -44,7 +44,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.ApiSettings', {
                 fieldLabel: 'API Key',
                 minWidth: 250,
                 readOnly: true,
-                value: 123 //data.apiKey
+                value: data.apiKey
             }),
             {
                 xtype: 'button',

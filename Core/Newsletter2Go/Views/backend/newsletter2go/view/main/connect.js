@@ -19,40 +19,16 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.Connect', {
 
         me.title = 'Connect to Newsletter2Go';
         me.items = me.createForm();
-        // me.registerEvents();
 
         me.callParent(arguments);
     },
     createForm: function () {
-        var me = this,
-            labelText,
-            buttonText,
-            labelColor,
-            companyInfo,
-            data = me.record;
-            console.log("me.record", data);
-        if (!1) {
-            labelText = ' Disconnected';
-            buttonText = 'Click here to connect';
-            labelColor = '#be2322';
-            companyInfo = '';
-        } else {
-            labelText = ' Connected';
-            buttonText = 'Click here to disconnect';
-            labelColor = '#31be45';
-            companyInfo = 111//' to ' + data['company_name'] + ', ' + data['company_bill_address'];
-        }
+        var me = this;
 
         return [
             {
-                xtype: 'box',
-                style: 'margin-bottom: 5px',
-                itemId: 'nl2goConnectionStatusLabel',
-                html: '<p>Status:<span style="color:' + labelColor + '">' + labelText  + companyInfo + '</span></p>'
-            },
-            {
                 xtype: 'button',
-                text: buttonText,
+                text: 'Click here to connect',
                 style: 'margin-bottom: 5px',
                 handler: function () {
                     me.fireEvent('connect', me.record);

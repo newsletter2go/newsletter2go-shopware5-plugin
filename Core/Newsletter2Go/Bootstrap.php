@@ -8,7 +8,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.2.0';
+    const VERSION = '5.0.0';
 
     /**
      * err-number, that should be pulled, whenever credentials are missing

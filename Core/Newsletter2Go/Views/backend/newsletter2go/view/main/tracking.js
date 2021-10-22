@@ -30,7 +30,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.Tracking', {
             labelText,
             buttonText,
             data = me.record;
-        if (0) {
+        if (data.trackOrders === '1') {
                 labelText = ' Enabled';
                 buttonText = 'Disable Tracking';
         } else {

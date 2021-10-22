@@ -11,7 +11,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             success: function(response) {
                 var result = Ext.decode(response.responseText);
 
-                me.mainWindow = me.getView('Main').create({
+                me.mainWindow = me.getView('main.Main').create({
                     record: result.data
                 }).show();
             }
@@ -29,8 +29,6 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             }
         });
 
-      me.mainWindow = me.getView('main.Main').create();
-      me.mainWindow.show();
         me.callParent(arguments);
     },
     onApiKeyReset: function () {
