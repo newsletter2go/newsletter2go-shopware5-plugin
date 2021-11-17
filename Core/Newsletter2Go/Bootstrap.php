@@ -387,13 +387,14 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     private function registerControllers()
     {
-        $path = 'Enlight_Controller_Dispatcher_ControllerPath_';
-        $this->subscribeEvent($path . 'Backend_Newsletter2go', 'getNewsletter2goBackendController');
-        $this->subscribeEvent($path . 'Api_NewsletterCustomers', 'getNewsletterCustomersApiController');
-        $this->subscribeEvent($path . 'Api_NewsletterScriptUrls', 'getNewsletterScriptUrlsApiController');
-        $this->subscribeEvent($path . 'Api_NewsletterGroups', 'getNewsletterGroupsApiController');
-        $this->subscribeEvent($path . 'Api_CustomerFields', 'getCustomerFieldsApiController');
-        $this->subscribeEvent($path . 'Api_ArticleMediaFiles', 'getArticleMediaFilesApiController');
-        $this->subscribeEvent($path . 'Api_ArticleSeoLink', 'getArticleSeoLinkApiController');
+        $path = 'Enlight_Controller_Dispatcher_ControllerPath_%s_%s';
+        $this->subscribeEvent(sprintf($path, 'Backend', 'Newsletter2go'), 'getNewsletter2goBackendController');
+        $this->subscribeEvent(sprintf($path, 'Frontend', 'Newsletter2goCallback'), 'getDefaultControllerPath');
+        $this->subscribeEvent(sprintf($path, 'Api', 'NewsletterCustomers'), 'getNewsletterCustomersApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'NewsletterScriptUrls'), 'getNewsletterScriptUrlsApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'NewsletterGroups'), 'getNewsletterGroupsApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'CustomerFields'), 'getCustomerFieldsApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'ArticleMediaFiles'), 'getArticleMediaFilesApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'ArticleSeoLink'), 'getArticleSeoLinkApiController');
     }
 }
