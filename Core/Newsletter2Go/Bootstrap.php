@@ -198,24 +198,20 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     private function isCookieAccepted(\Enlight_Event_EventArgs $args)
     {
-        if ($args->getRequest()->getCookie('cookieDeclined') == 1) {
-          // all cookies declined
-          return false;
-        } elseif ($args->getRequest()->getCookie('allowCookie') == 1) {
-          //all cookies accepted
-          return true;
-        } elseif ($args->getRequest()->getCookie('cookiePreferences')) {
-          try {
-            $cookiePreferences = json_decode($args->getRequest()->getCookie('cookiePreferences'), true);
-          } catch (\Exception $exception) {
-            Shopware()->Container()->get('pluginlogger')->error($exception->getMessage());
-          }
-
-          if (!empty($cookiePreferences['groups']['statistics']['cookies']['n2g']['active'])) {
-            //n2g cookie accepted
+      try {
+          if ($args->getRequest()->getCookie('allowCookie') == 1) {
+            //all cookies accepted
             return true;
+          } elseif ($args->getRequest()->getCookie('cookiePreferences')) {
+              $cookiePreferences = json_decode($args->getRequest()->getCookie('cookiePreferences'), true);
+              if (!empty($cookiePreferences['groups']['statistics']['cookies']['n2g']['active'])) {
+                //n2g cookie accepted
+                return true;
+              }
           }
-        }
+      } catch (\Exception $exception) {
+        Shopware()->Container()->get('pluginlogger')->error($exception->getMessage());
+      }
 
         return false;
     }
