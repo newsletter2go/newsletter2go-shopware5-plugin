@@ -12,10 +12,14 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.Main', {
     resizable: true,
     stateId: 'Newsletter2goId',
     border: false,
+    snippets: {
+      title: '{s name="config/title"} Newsletter2Go {/s}',
+      cancel: '{s name="config/cancel"}Cancel{/s}'
+    },
     initComponent: function () {
         var me = this;
         Ext.applyIf(me, {
-            title: 'Newsletter2Go',
+            title: me.snippets.title,
             items: me.getItems(),
             bbar: me.getToolbar()
         });
@@ -41,7 +45,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.Main', {
         return [
             '->',
             {
-                text: 'Cancel',
+                text: me.snippets.cancel,
                 cls: 'primary',
                 handler: function () {
                     me.destroy();

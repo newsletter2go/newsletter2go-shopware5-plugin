@@ -27,7 +27,7 @@ class CookieRegisterer implements SubscriberInterface
         $collection = new CookieCollection();
       $collection->add(new CookieStruct(
         'n2g',
-        '/^n2g/',
+        '/^n2g$/',
         'Newsletter2Go',
         CookieGroupStruct::STATISTICS
       ));

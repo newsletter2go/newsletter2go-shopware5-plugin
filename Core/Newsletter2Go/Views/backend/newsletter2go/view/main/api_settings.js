@@ -14,10 +14,13 @@ Ext.define('Shopware.apps.Newsletter2go.view.main.ApiSettings', {
         labelWidth: 160,
         anchor: '100%'
     },
+    snippets: {
+      title: '{s name="general/title"}Shopware API Access Details{/s}',
+    },
     initComponent: function () {
         var me = this;
 
-        me.title = 'Shop API Access Settings';
+        me.title = this.snippets.title;
         me.items = me.createForm();
         me.registerEvents();
 
