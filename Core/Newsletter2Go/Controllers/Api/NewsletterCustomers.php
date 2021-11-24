@@ -157,7 +157,7 @@ class Shopware_Controllers_Api_NewsletterCustomers extends Shopware_Controllers_
      *
      * @return array
      */
-    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit = null, $offset = null, $subscribed)
+    private function getOnlyStreamCustomers($group, array $emails = array(), array $fields = array(), $limit = null, $offset = null, $subscribed = false)
     {
         return $this->resource->getStreamList($group, $emails, $fields, $limit, $offset, $subscribed);
     }
