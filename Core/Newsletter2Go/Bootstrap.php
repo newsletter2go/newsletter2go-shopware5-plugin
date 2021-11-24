@@ -1,6 +1,7 @@
 <?php
 
 use Newsletter2Go\Components\Newsletter2GoHelper;
+use Newsletter2Go\Subscriber\CookieRegisterer;
 
 /**
  * @category  Shopware
@@ -8,21 +9,7 @@ use Newsletter2Go\Components\Newsletter2GoHelper;
  */
 class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const VERSION = '4.2.0';
-
-    /**
-     * err-number, that should be pulled, whenever credentials are missing
-     */
-    const ERRNO_PLUGIN_CREDENTIALS_MISSING = 'int-1-404';
-
-    /**
-     *err-number, that should be pulled, whenever credentials are wrong
-     */
-    const ERRNO_PLUGIN_CREDENTIALS_WRONG = 'int-1-403';
-
-    /**
-     * err-number for all other (intern) errors. More Details to the failure should be added to error-message
-     */
+    const VERSION = '5.0.0';
     const ERRNO_PLUGIN_OTHER = 'int-1-600';
 
     /**
@@ -134,6 +121,14 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->Application()->Loader()->registerNamespace('Newsletter2Go\Services', $this->Path() . 'Services/');
     }
 
+  public function onStartDispatch(Enlight_Event_EventArgs $args)
+  {
+    $this->Application()->Loader()->registerNamespace('Newsletter2Go\Subscriber', $this->Path() . 'Subscriber/');
+    if (Shopware()->Config()->get('show_cookie_note') || Shopware()->Config()->get('swag_cookie.show_cookie_note')) {
+      $this->Application()->Events()->addSubscriber(new CookieRegisterer());
+    }
+  }
+
     /**
      * Add template path
      */
@@ -188,13 +183,37 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $actionName = $request->getActionName();
         $controllerName = $request->getControllerName();
 
-        if ($controllerName === 'checkout' && $actionName === 'finish' && $companyId && $tracking) {
+        if ($controllerName === 'checkout' && $actionName === 'finish' && $companyId && $tracking && $this->isCookieAccepted($args)) {
             //order confirmation event
             $helper = new Newsletter2GoHelper();
             $view->assign('companyId', $companyId);
             $view->assign('helper', $helper);
             $view->extendsTemplate('frontend/plugins/n2go_jstracking/finish.tpl');
         }
+    }
+
+    /**
+     * @param \Enlight_Event_EventArgs $args
+     * @return bool
+     */
+    private function isCookieAccepted(\Enlight_Event_EventArgs $args)
+    {
+      try {
+          if ($args->getRequest()->getCookie('allowCookie') == 1) {
+            //all cookies accepted
+            return true;
+          } elseif ($args->getRequest()->getCookie('cookiePreferences')) {
+              $cookiePreferences = json_decode($args->getRequest()->getCookie('cookiePreferences'), true);
+              if (!empty($cookiePreferences['groups']['statistics']['cookies']['n2g']['active'])) {
+                //n2g cookie accepted
+                return true;
+              }
+          }
+      } catch (\Exception $exception) {
+        Shopware()->Container()->get('pluginlogger')->error($exception->getMessage());
+      }
+
+        return false;
     }
 
     /**
@@ -353,6 +372,10 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
         $this->subscribeEvent('Enlight_Controller_Front_StartDispatch', 'onEnlightControllerFrontStartDispatch');
         $this->subscribeEvent('Enlight_Controller_Dispatcher_ControllerPath_Backend_Newsletter2go', 'onGetControllerPathBackendNewsletter2go');
         $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend', 'onFrontendPostDispatch');
+        $this->subscribeEvent(
+          'Enlight_Controller_Front_DispatchLoopStartup',
+          'onStartDispatch'
+        );
     }
 
     /**
@@ -360,25 +383,14 @@ class Shopware_Plugins_Core_Newsletter2Go_Bootstrap extends Shopware_Components_
      */
     private function registerControllers()
     {
-        // Added to support older versions (<4.2.0)
-        if (method_exists($this, 'registerController')) {
-            $this->registerController('Frontend', 'Newsletter2goCallback');
-            $this->registerController('Backend', 'Newsletter2go');
-            $this->registerController('Api', 'NewsletterCustomers');
-            $this->registerController('Api', 'NewsletterScriptUrls');
-            $this->registerController('Api', 'NewsletterGroups');
-            $this->registerController('Api', 'CustomerFields');
-            $this->registerController('Api', 'ArticleMediaFiles');
-            $this->registerController('Api', 'ArticleSeoLink');
-        } else {
-            $path = 'Enlight_Controller_Dispatcher_ControllerPath_';
-            $this->subscribeEvent($path . 'Backend_Newsletter2go', 'getNewsletter2goBackendController');
-            $this->subscribeEvent($path . 'Api_NewsletterCustomers', 'getNewsletterCustomersApiController');
-            $this->subscribeEvent($path . 'Api_NewsletterScriptUrls', 'getNewsletterScriptUrlsApiController');
-            $this->subscribeEvent($path . 'Api_NewsletterGroups', 'getNewsletterGroupsApiController');
-            $this->subscribeEvent($path . 'Api_CustomerFields', 'getCustomerFieldsApiController');
-            $this->subscribeEvent($path . 'Api_ArticleMediaFiles', 'getArticleMediaFilesApiController');
-            $this->subscribeEvent($path . 'Api_ArticleSeoLink', 'getArticleSeoLinkApiController');
-        }
+        $path = 'Enlight_Controller_Dispatcher_ControllerPath_%s_%s';
+        $this->subscribeEvent(sprintf($path, 'Backend', 'Newsletter2go'), 'getNewsletter2goBackendController');
+        $this->subscribeEvent(sprintf($path, 'Frontend', 'Newsletter2goCallback'), 'getDefaultControllerPath');
+        $this->subscribeEvent(sprintf($path, 'Api', 'NewsletterCustomers'), 'getNewsletterCustomersApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'NewsletterScriptUrls'), 'getNewsletterScriptUrlsApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'NewsletterGroups'), 'getNewsletterGroupsApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'CustomerFields'), 'getCustomerFieldsApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'ArticleMediaFiles'), 'getArticleMediaFilesApiController');
+        $this->subscribeEvent(sprintf($path, 'Api', 'ArticleSeoLink'), 'getArticleSeoLinkApiController');
     }
 }

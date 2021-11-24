@@ -11,7 +11,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             success: function(response) {
                 var result = Ext.decode(response.responseText);
 
-                me.mainWindow = me.getView('Main').create({
+                me.mainWindow = me.getView('main.Main').create({
                     record: result.data
                 }).show();
             }
@@ -40,7 +40,7 @@ Ext.define('Shopware.apps.Newsletter2go.controller.Main', {
             success: function(response) {
                 var result = Ext.decode(response.responseText),
                     users = Ext.ComponentQuery.query('#nl2goShopUsername'),
-                    keys = Ext.ComponentQuery.query('#nl2goShopApiKey'), 
+                    keys = Ext.ComponentQuery.query('#nl2goShopApiKey'),
                     i;
 
                 for (i = 0; i < users.length; i++) {

@@ -7,7 +7,7 @@ Ext.define('Shopware.apps.Newsletter2go', {
     controllers: ['Main'],
     models: [],
     stores: [],
-    views: ['Main', 'Config', 'ApiSettings', 'Connect', 'Tracking'],
+    views: ['main.Main', 'main.Config', 'main.ApiSettings', 'main.Connect', 'main.Tracking'],
     launch: function () {
         var me = this,
             mainController = me.getController('Main');

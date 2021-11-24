@@ -1,6 +1,6 @@
 //{namespace name=backend/newsletter2go/view/config}
 //{block name="backend/newsletter2go/view/config"}
-Ext.define('Shopware.apps.Newsletter2go.view.Config', {
+Ext.define('Shopware.apps.Newsletter2go.view.main.Config', {
     extend: 'Ext.container.Container',
     alias: 'widget.newsletter2go-config',
     layout: 'vbox',
@@ -25,7 +25,7 @@ Ext.define('Shopware.apps.Newsletter2go.view.Config', {
                 xtype: 'tracking-nl2go',
                 record: me.record
             },
-            {   
+            {
                 xtype: 'connect-nl2go',
                 record: me.record
             }

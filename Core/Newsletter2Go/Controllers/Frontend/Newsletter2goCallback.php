@@ -10,11 +10,8 @@ class Shopware_Controllers_Frontend_Newsletter2goCallback extends Enlight_Contro
      */
     private $em;
 
-    public function __construct(
-        Enlight_Controller_Request_Request $request = null,
-        Enlight_Controller_Response_Response $response = null
-    ) {
-        parent::__construct($request, $response);
+    public function __construct() {
+        parent::__construct();
         $this->em = Shopware()->Models();
     }
 

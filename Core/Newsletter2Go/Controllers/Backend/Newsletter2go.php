@@ -17,11 +17,8 @@ class Shopware_Controllers_Backend_Newsletter2go extends Shopware_Controllers_Ba
      *
      * @throws \Exception
      */
-    public function __construct(
-        Enlight_Controller_Request_Request $request = null,
-        Enlight_Controller_Response_Response $response = null
-    ) {
-        parent::__construct($request, $response);
+    public function __construct() {
+        parent::__construct();
 
         $this->em = Shopware()->Models();
     }
